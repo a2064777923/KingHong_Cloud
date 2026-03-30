@@ -73,6 +73,7 @@ class HotRanksAggregator:
         'bilibili': ('B 站热门', 'https://www.bilibili.com/v/popular/rank/all'),
         'douyin': ('抖音热点', 'https://www.douyin.com/hot'),
         'csdn': ('CSDN 热榜', 'https://blog.csdn.net/rank/list'),
+        'github': ('GitHub Trending', 'https://github.com/trending'),
         'juejin': ('掘金热榜', 'https://juejin.cn/hot/items'),
         'baidu': ('百度热搜', 'https://top.baidu.com/board'),
         'toutiao': ('今日头条', 'https://www.toutiao.com/'),
@@ -107,7 +108,7 @@ class HotRanksAggregator:
     }
     
     # 默认抓取的平台（6 大主流）
-    DEFAULT_PLATFORMS = ['weibo', 'zhihu', 'bilibili', 'douyin', 'csdn', 'juejin']
+    DEFAULT_PLATFORMS = ['weibo', 'zhihu', 'bilibili', 'douyin', 'csdn', 'github', 'juejin']
     
     # 全部 35 个平台列表
     ALL_PLATFORMS = list(PLATFORMS.keys())
@@ -122,45 +123,97 @@ class HotRanksAggregator:
             if verbose:
                 print(f"⚠️  未知平台：{platform}")
             return False
-        
+
         name, url = self.PLATFORMS[platform]
-        
+
         if verbose:
             print(f"\n### {name}")
             print(f"网站：{url}\n")
-        
+
+        if platform == 'github':
+            return self._fetch_github_trending(verbose=verbose)
+
         data = self.api.get_hot_rank(platform)
-        
+
         if not data:
             if verbose:
                 print(f"⚠️  {name}暂时无法获取")
             return False
-        
+
         items = data.get('data', [])[:10]  # 只取 TOP10
-        
+
         if not items:
             if verbose:
                 print(f"⚠️  {name}无数据")
             return False
-        
+
         self.results[platform] = {
             'name': name,
             'url': url,
             'items': items,
             'update_time': data.get('updateTime', '')
         }
-        
+
         # 输出热榜
         for i, item in enumerate(items, 1):
             title = item.get('title', '无标题')
             link = item.get('url', '#')
-            hot = item.get('hot', item.get('desc', ''))
-            
+
             # 格式化输出
             print(f"{i}. {title}")
             print(f"   🔗 {link}")
-        
+
         return True
+
+    def _fetch_github_trending(self, verbose: bool = True) -> bool:
+        """通过已安装的 github-trending-stable 脚本获取 GitHub Trending。"""
+        import subprocess
+
+        script = '/root/.openclaw/workspace/skills/github-trending-stable/scripts/github_trending.py'
+        try:
+            result = subprocess.run(
+                ['python3', script, 'weekly', '--limit', '10', '--json'],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
+            payload = json.loads(result.stdout)
+            items = payload.get('data', [])[:10]
+            if not items:
+                if verbose:
+                    print('⚠️  GitHub Trending 无数据')
+                return False
+
+            normalized_items = []
+            for item in items:
+                normalized_items.append({
+                    'title': item.get('full_name', '无标题'),
+                    'url': item.get('url', '#'),
+                    'hot': f"⭐ {item.get('stars_total', '0')} | 📈 +{item.get('stars_gained', 0)}",
+                    'desc': item.get('description', ''),
+                })
+
+            self.results['github'] = {
+                'name': 'GitHub Trending',
+                'url': 'https://github.com/trending',
+                'items': normalized_items,
+                'update_time': payload.get('updated_at', ''),
+            }
+
+            if verbose:
+                for i, item in enumerate(normalized_items, 1):
+                    print(f"{i}. {item['title']}")
+                    if item.get('desc'):
+                        print(f"   📝 {item['desc']}")
+                    print(f"   {item['hot']}")
+                    print(f"   🔗 {item['url']}")
+
+            return True
+        except Exception as e:
+            if verbose:
+                print(f"⚠️  GitHub Trending 获取失败：{e}")
+            return False
     
     def fetch_all(self, platforms: Optional[List[str]] = None) -> Dict:
         """抓取多个平台热榜"""
@@ -191,7 +244,7 @@ class HotRanksAggregator:
             '🎬 视频/直播': ['bilibili', 'douyin', 'kuaishou', 'acfun'],
             '💬 社交媒体': ['weibo', 'zhihu', 'zhihu-daily', 'tieba', 'douban-group', 'ngabbs', 'hupu'],
             '📰 新闻资讯': ['baidu', 'thepaper', 'toutiao', '36kr', 'qq-news', 'sina', 'sina-news', 'netease-news', 'huxiu', 'ifanr'],
-            '💻 技术社区': ['ithome', 'sspai', 'csdn', 'juejin', '51cto', 'hellogithub'],
+            '💻 技术社区': ['ithome', 'sspai', 'csdn', 'github', 'juejin', '51cto', 'hellogithub'],
             '🎮 游戏/ACG': ['genshin', 'miyoushe', 'honkai', 'starrail', 'lol'],
             '📚 阅读/文化': ['jianshu', 'guokr', 'weread', 'douban-movie'],
         }
