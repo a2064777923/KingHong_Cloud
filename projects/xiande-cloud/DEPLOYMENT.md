@@ -12,8 +12,10 @@ pnpm install
 pnpm db:generate
 pnpm db:push
 pnpm build
-PORT=9527 HOSTNAME=0.0.0.0 NODE_ENV=production node .next/standalone/server.js
+./scripts/start-production.sh
 ```
+
+`scripts/start-production.sh` 会在启动 standalone 服务前同步 `public/` 和 `.next/static/` 到运行目录，避免页面可访问但 CSS / JS 静态资源 404。
 
 ## 建议的 systemd 服务
 
