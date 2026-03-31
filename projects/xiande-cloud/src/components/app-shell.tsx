@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import { FolderKanban, ShieldCheck, Share2, Sparkles } from "lucide-react";
+import { FolderKanban, Settings, ShieldCheck, Share2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/app", label: "文件", icon: FolderKanban },
   { href: "/app/shares", label: "分享", icon: Share2 },
+  { href: "/app/settings", label: "设置", icon: Settings },
   { href: "/admin", label: "管理", icon: ShieldCheck },
 ];
 

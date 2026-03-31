@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function UploadPanel() {
+export function UploadPanel({ folderId }: { folderId?: string | null }) {
   const [message, setMessage] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
@@ -15,6 +15,9 @@ export function UploadPanel() {
 
     const formData = new FormData();
     formData.append("file", file);
+    if (folderId) {
+      formData.append("folderId", folderId);
+    }
 
     const response = await fetch("/api/files/upload", {
       method: "POST",
