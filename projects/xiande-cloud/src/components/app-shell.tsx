@@ -41,7 +41,7 @@ export function AppShell({
               .filter((item) => isAdmin || item.href !== "/admin")
               .map((item) => {
                 const Icon = item.icon;
-                const active = pathname === item.href;
+                const active = pathname === item.href || (item.href === "/app" && pathname.startsWith("/app/preview"));
                 return (
                   <Link
                     key={item.href}

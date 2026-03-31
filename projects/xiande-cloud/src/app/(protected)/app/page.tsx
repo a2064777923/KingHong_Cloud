@@ -8,6 +8,8 @@ import { formatDateTime } from "@/lib/date";
 import { UploadPanel } from "@/components/upload-panel";
 import { AppShell } from "@/components/app-shell";
 import { CreateFolderPanel } from "@/components/create-folder-panel";
+import { FolderActions } from "@/components/folder-actions";
+import { FileMovePanel } from "@/components/file-move-panel";
 
 export default async function AppPage({
   searchParams,
@@ -33,7 +35,7 @@ export default async function AppPage({
         .map((_, index, parts) => `/${parts.slice(0, index + 1).join("/")}`)
     : [];
 
-  const [files, folders, breadcrumbFolders] = await Promise.all([
+  const [files, folders, breadcrumbFolders, allFolders] = await Promise.all([
     db.fileEntry.findMany({
       where: { ownerId: user.id, folderId: effectiveFolderId },
       orderBy: { createdAt: "desc" },
@@ -54,6 +56,11 @@ export default async function AppPage({
           select: { id: true, name: true, path: true },
         })
       : Promise.resolve([]),
+    db.folder.findMany({
+      where: { ownerId: user.id },
+      orderBy: { path: "asc" },
+      select: { id: true, name: true, path: true },
+    }),
   ]);
 
   return (
@@ -93,7 +100,14 @@ export default async function AppPage({
                 </div>
               ))}
             </div>
-            <div className="text-xs text-slate-400">当前目录：{currentFolder?.path ?? "/"}</div>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              {currentFolder ? (
+                <Link href={breadcrumbFolders.length > 1 ? `/app?folder=${breadcrumbFolders[breadcrumbFolders.length - 2]?.id}` : "/app"} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 hover:bg-white/8">
+                  返回上一级
+                </Link>
+              ) : null}
+              <span>当前目录：{currentFolder?.path ?? "/"}</span>
+            </div>
           </div>
         </section>
 
@@ -113,19 +127,18 @@ export default async function AppPage({
                   </div>
                 ) : (
                   folders.map((folder) => (
-                    <Link
-                      key={folder.id}
-                      href={`/app?folder=${folder.id}`}
-                      className="block rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:bg-white/8"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-medium">{folder.name}</div>
-                          <div className="mt-1 text-xs text-slate-400">{folder.path}</div>
+                    <div key={folder.id} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+                      <Link href={`/app?folder=${folder.id}`} className="block transition hover:text-white">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium">{folder.name}</div>
+                            <div className="mt-1 text-xs text-slate-400">{folder.path}</div>
+                          </div>
+                          <Folder className="h-4 w-4 text-slate-400" />
                         </div>
-                        <Folder className="h-4 w-4 text-slate-400" />
-                      </div>
-                    </Link>
+                      </Link>
+                      <FolderActions folderId={folder.id} folderName={folder.name} />
+                    </div>
                   ))
                 )}
               </div>
@@ -160,6 +173,7 @@ export default async function AppPage({
                     <a href={`/api/files/${file.id}/download`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">下载</a>
                     <a href={`/app/shares`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">分享</a>
                   </div>
+                  <FileMovePanel fileId={file.id} currentFolderId={effectiveFolderId} folders={allFolders.filter((folder) => folder.id !== effectiveFolderId)} />
                 </article>
               ))
             )}
