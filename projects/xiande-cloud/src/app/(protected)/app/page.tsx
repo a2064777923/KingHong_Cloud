@@ -1,9 +1,11 @@
-import { Search, SlidersHorizontal, UploadCloud } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatBytes } from "@/lib/files";
 import { FileKindIcon } from "@/components/file-kind-icon";
 import { formatDateTime } from "@/lib/date";
+import { UploadPanel } from "@/components/upload-panel";
+import { ChangePasswordPanel } from "@/components/change-password-panel";
 
 export default async function AppPage() {
   const user = await requireUser();
@@ -27,49 +29,49 @@ export default async function AppPage() {
           <Search className="h-4 w-4 text-slate-400" />
           <input
             disabled
-            placeholder="搜索文件、扩展名、类型、标签（搜索 API 下一步接入）"
+            placeholder="搜索文件"
             className="w-full bg-transparent text-sm outline-none placeholder:text-slate-500"
           />
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm">
             <SlidersHorizontal className="h-4 w-4" />
-            排序与筛选
+            排序
           </button>
-          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950">
-            <UploadCloud className="h-4 w-4" />
-            上传文件
-            <input type="file" className="hidden" disabled />
-          </label>
+          <UploadPanel />
         </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">文件夹</h3>
-            <span className="text-sm text-slate-400">{folders.length} 个</span>
-          </div>
-          <div className="mt-4 space-y-3">
-            {folders.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/15 px-4 py-6 text-sm text-slate-300">
-                还没有文件夹。真实创建 API 已接好，前端表单我下一步补上。
-              </div>
-            ) : (
-              folders.map((folder) => (
-                <div key={folder.id} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
-                  <div className="text-sm font-medium">{folder.name}</div>
-                  <div className="mt-1 text-xs text-slate-400">{folder.path}</div>
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">文件夹</h3>
+              <span className="text-sm text-slate-400">{folders.length}</span>
+            </div>
+            <div className="mt-4 space-y-3">
+              {folders.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/15 px-4 py-6 text-sm text-slate-300">
+                  暂无文件夹
                 </div>
-              ))
-            )}
+              ) : (
+                folders.map((folder) => (
+                  <div key={folder.id} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+                    <div className="text-sm font-medium">{folder.name}</div>
+                    <div className="mt-1 text-xs text-slate-400">{folder.path}</div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+
+          <ChangePasswordPanel />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           {files.length === 0 ? (
             <div className="col-span-full rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-sm text-slate-300">
-              当前还没有文件。上传/下载/预览 API 已接入，下一步我会把前端交互表单补齐。
+              暂无文件
             </div>
           ) : (
             files.map((file) => (
@@ -88,7 +90,7 @@ export default async function AppPage() {
                     {formatBytes(file.sizeBytes)}
                   </span>
                 </div>
-                <div className="mt-4 text-xs text-slate-400">上传时间：{formatDateTime(file.createdAt)}</div>
+                <div className="mt-4 text-xs text-slate-400">{formatDateTime(file.createdAt)}</div>
                 <div className="mt-5 grid grid-cols-3 gap-2 text-sm">
                   <a href={`/api/files/${file.id}/preview`} target="_blank" className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">预览</a>
                   <a href={`/api/files/${file.id}/download`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">下载</a>

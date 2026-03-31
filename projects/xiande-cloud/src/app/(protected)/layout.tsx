@@ -8,12 +8,8 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
 
   return (
     <AppShell
-      title={user.role === "ADMIN" ? "管理与控制" : "我的文件空间"}
-      subtitle={
-        user.role === "ADMIN"
-          ? `当前登录：${user.username}。这里放管理员高频动作、账号维护、分享治理与系统运行概览。`
-          : `当前登录：${user.username}。你可以浏览、上传、预览、搜索和分享自己有权限访问的文件。`
-      }
+      title={user.role === "ADMIN" ? "管理" : "文件"}
+      subtitle={user.role === "ADMIN" ? `${user.username}` : `${user.username}`}
       pathname={pathname}
     >
       {children}

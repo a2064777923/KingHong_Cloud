@@ -17,3 +17,20 @@ export const createShareSchema = z.object({
   maxDownloads: z.coerce.number().int().positive().max(100000).optional(),
   allowPreview: z.coerce.boolean().optional().default(true),
 });
+
+export const createUserSchema = z.object({
+  username: z.string().trim().min(3).max(64),
+  password: z.string().min(6).max(128),
+  role: z.enum(["ADMIN", "USER"]).default("USER"),
+  maxUploadMb: z.coerce.number().int().positive().max(102400).optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(6).max(128),
+});
+
+export const adminResetPasswordSchema = z.object({
+  userId: z.string().min(1),
+  newPassword: z.string().min(6).max(128),
+});

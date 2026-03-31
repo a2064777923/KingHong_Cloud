@@ -4,7 +4,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/constants";
 import { signSessionToken, generateOpaqueToken, hashPassword, verifyPassword } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { UserRole } from "@/generated/prisma";
+import { UserRole } from "@prisma/client";
 
 export async function ensureSeedAdmin() {
   const existing = await db.user.findUnique({

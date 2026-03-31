@@ -1,5 +1,5 @@
 import { Archive, FileCode2, FileImage, FileText, Film, Music4, Presentation, FileQuestion } from "lucide-react";
-import { FileKind } from "@/generated/prisma";
+import { FileKind } from "@prisma/client";
 
 export function FileKindIcon({ kind }: { kind: FileKind }) {
   const className = "h-5 w-5";

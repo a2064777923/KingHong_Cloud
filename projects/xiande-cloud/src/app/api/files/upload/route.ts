@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { NextRequest } from "next/server";
-import { FileKind } from "@/generated/prisma";
+import { FileKind } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";

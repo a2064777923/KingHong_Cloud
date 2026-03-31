@@ -4,9 +4,9 @@ import { FolderKanban, ShieldCheck, Share2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { href: "/app", label: "文件空间", icon: FolderKanban },
-  { href: "/app/shares", label: "分享链接", icon: Share2 },
-  { href: "/admin", label: "管理后台", icon: ShieldCheck },
+  { href: "/app", label: "文件", icon: FolderKanban },
+  { href: "/app/shares", label: "分享", icon: Share2 },
+  { href: "/admin", label: "管理", icon: ShieldCheck },
 ];
 
 export function AppShell({
@@ -29,7 +29,7 @@ export function AppShell({
               <Sparkles className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/70">Xiande Cloud</p>
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/70">Files</p>
               <h1 className="text-lg font-semibold">贤得慌又云里雾里</h1>
             </div>
           </div>
@@ -54,22 +54,13 @@ export function AppShell({
               );
             })}
           </nav>
-          <div className="mt-8 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-50/90">
-            <p className="font-medium">默认策略</p>
-            <ul className="mt-2 space-y-1 text-cyan-50/75">
-              <li>• Admin 上传不限大小</li>
-              <li>• 普通账号单文件 100MB</li>
-              <li>• 分享支持密码 / 失效 / 次数</li>
-            </ul>
-          </div>
         </aside>
 
         <main className="flex-1 lg:pl-6">
           <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
             <header className="mb-8 flex flex-col gap-3 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Control Surface</p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h2>
+                <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{subtitle}</p>
               </div>
             </header>

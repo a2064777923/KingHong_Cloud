@@ -8,10 +8,6 @@ import { FileKindIcon } from "@/components/file-kind-icon";
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
 
-  if (token === "demo") {
-    return <DemoSharePage />;
-  }
-
   const share = await db.share.findUnique({
     where: { token },
     include: { items: { include: { file: true } } },
@@ -30,7 +26,6 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Shared Files</p>
             <h1 className="mt-2 text-3xl font-semibold">分享文件</h1>
-            <p className="mt-3 text-sm leading-7 text-slate-300">该页面面向外部访问者，强调清爽、可信、低认知负担。当前已接入真实下载链路与失效判断，密码输入交互下一步补到页面上。</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-slate-300">
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1">
@@ -75,20 +70,6 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
             </article>
           ))}
         </div>
-      </section>
-    </main>
-  );
-}
-
-function DemoSharePage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="rounded-[2rem] border border-cyan-300/15 bg-white/[0.06] p-6 backdrop-blur-xl sm:p-8">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Demo Share</p>
-        <h1 className="mt-2 text-3xl font-semibold">分享展示页原型</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-          这里模拟外部访问者看到的页面：入口清晰、主按钮明确、文件信息可扫一眼就懂。真实下载链路已经接入，剩余是密码输入与更完整的预览交互。
-        </p>
       </section>
     </main>
   );
