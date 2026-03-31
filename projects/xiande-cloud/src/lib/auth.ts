@@ -43,10 +43,13 @@ export async function createSession(userId: string) {
   });
 
   const cookieStore = await cookies();
+  const forwardedProto = headerList.get("x-forwarded-proto");
+  const isHttps = forwardedProto === "https";
+
   cookieStore.set(SESSION_COOKIE_NAME, rawToken, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isHttps,
     expires: expiresAt,
     path: "/",
   });
