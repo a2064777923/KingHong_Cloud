@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, Info } from "lucide-react";
 import { useState } from "react";
 
 type UserRecord = {
@@ -27,7 +28,7 @@ export function AdminUserPanel({ initialUsers }: { initialUsers: UserRecord[] })
         username: form.username,
         password: form.password,
         role: form.role,
-        maxUploadMb: Number(form.maxUploadMb),
+        maxUploadMb: form.role === "ADMIN" ? undefined : Number(form.maxUploadMb),
       }),
     });
 
@@ -60,16 +61,66 @@ export function AdminUserPanel({ initialUsers }: { initialUsers: UserRecord[] })
     <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
       <form onSubmit={createUser} className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
         <h3 className="text-lg font-medium">新建用户</h3>
-        <div className="mt-4 space-y-3">
-          <input className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none" placeholder="用户名" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-          <input className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none" placeholder="初始密码" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          <div className="grid grid-cols-2 gap-3">
-            <select className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-              <option value="USER">普通用户</option>
-              <option value="ADMIN">管理员</option>
-            </select>
-            <input className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none" placeholder="上传限制(MB)" value={form.maxUploadMb} onChange={(e) => setForm({ ...form, maxUploadMb: e.target.value })} />
+        <div className="mt-4 space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-300">用户名</span>
+            <input
+              className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-300/40"
+              placeholder="例如：demo_user"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-300">初始密码</span>
+            <input
+              className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-300/40"
+              placeholder="至少 6 位"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm text-slate-300">用户角色</span>
+              <div className="relative">
+                <select
+                  className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 pr-10 text-sm outline-none ring-0 focus:border-cyan-300/40"
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value as "ADMIN" | "USER" })}
+                >
+                  <option value="USER">普通用户</option>
+                  <option value="ADMIN">管理员</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              </div>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm text-slate-300">单文件上传上限（MB）</span>
+              <input
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none ring-0 placeholder:text-slate-500 focus:border-cyan-300/40"
+                placeholder="普通用户默认 100"
+                value={form.maxUploadMb}
+                onChange={(e) => setForm({ ...form, maxUploadMb: e.target.value })}
+                disabled={form.role === "ADMIN"}
+              />
+            </label>
           </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-xs leading-6 text-slate-300">
+            <div className="flex items-start gap-2">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
+              <div>
+                <p>“单文件上传上限” 只对普通用户生效，默认值 100 代表单个文件最大 100MB。</p>
+                <p>管理员不受该限制。</p>
+              </div>
+            </div>
+          </div>
+
           <button className="w-full rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950">创建</button>
           {message ? <p className="text-xs text-slate-300">{message}</p> : null}
         </div>

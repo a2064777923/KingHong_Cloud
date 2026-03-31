@@ -14,11 +14,13 @@ export function AppShell({
   subtitle,
   children,
   pathname,
+  isAdmin,
 }: {
   title: string;
   subtitle: string;
   children: ReactNode;
   pathname: string;
+  isAdmin: boolean;
 }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(86,133,255,0.18),_transparent_35%),linear-gradient(180deg,#07111f_0%,#0b1322_35%,#09101c_100%)] text-white">
@@ -34,25 +36,27 @@ export function AppShell({
             </div>
           </div>
           <nav className="space-y-2">
-            {nav.map((item) => {
-              const Icon = item.icon;
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
-                    active
-                      ? "bg-cyan-400/15 text-cyan-100 shadow-lg shadow-cyan-500/10"
-                      : "text-slate-300 hover:bg-white/8 hover:text-white",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {nav
+              .filter((item) => isAdmin || item.href !== "/admin")
+              .map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
+                      active
+                        ? "bg-cyan-400/15 text-cyan-100 shadow-lg shadow-cyan-500/10"
+                        : "text-slate-300 hover:bg-white/8 hover:text-white",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
           </nav>
         </aside>
 

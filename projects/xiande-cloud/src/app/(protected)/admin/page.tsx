@@ -1,12 +1,13 @@
 import { BarChart3, HardDrive, Shield, Users } from "lucide-react";
 import { MetricCard } from "@/components/metric-card";
 import { AdminUserPanel } from "@/components/admin-user-panel";
+import { AppShell } from "@/components/app-shell";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatBytes } from "@/lib/files";
 
 export default async function AdminPage() {
-  await requireAdmin();
+  const user = await requireAdmin();
 
   const [userCount, shareCount, fileCount, files, users] = await Promise.all([
     db.user.count(),
@@ -34,15 +35,17 @@ export default async function AdminPage() {
   }));
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="账号" value={String(userCount)} hint="用户总数" icon={<Users className="h-5 w-5" />} />
-        <MetricCard label="文件" value={String(fileCount)} hint="文件总数" icon={<HardDrive className="h-5 w-5" />} />
-        <MetricCard label="分享" value={String(shareCount)} hint="分享链接总数" icon={<Shield className="h-5 w-5" />} />
-        <MetricCard label="容量" value={formatBytes(totalBytes)} hint="样本统计" icon={<BarChart3 className="h-5 w-5" />} />
-      </section>
+    <AppShell title="管理" subtitle={user.username} pathname="/admin" isAdmin>
+      <div className="space-y-6">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard label="账号" value={String(userCount)} hint="用户总数" icon={<Users className="h-5 w-5" />} />
+          <MetricCard label="文件" value={String(fileCount)} hint="文件总数" icon={<HardDrive className="h-5 w-5" />} />
+          <MetricCard label="分享" value={String(shareCount)} hint="分享链接总数" icon={<Shield className="h-5 w-5" />} />
+          <MetricCard label="容量" value={formatBytes(totalBytes)} hint="样本统计" icon={<BarChart3 className="h-5 w-5" />} />
+        </section>
 
-      <AdminUserPanel initialUsers={initialUsers} />
-    </div>
+        <AdminUserPanel initialUsers={initialUsers} />
+      </div>
+    </AppShell>
   );
 }
