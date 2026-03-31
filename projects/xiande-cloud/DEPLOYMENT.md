@@ -12,7 +12,7 @@ pnpm install
 pnpm db:generate
 pnpm db:push
 pnpm build
-NODE_ENV=production pnpm start
+PORT=9527 HOSTNAME=0.0.0.0 NODE_ENV=production node .next/standalone/server.js
 ```
 
 ## 建议的 systemd 服务
@@ -26,6 +26,8 @@ After=network.target
 Type=simple
 WorkingDirectory=/root/.openclaw/workspace/projects/xiande-cloud
 Environment=NODE_ENV=production
+Environment=PORT=9527
+Environment=HOSTNAME=0.0.0.0
 Environment=PATH=/root/.nvm/versions/node/v22.22.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ExecStart=/root/.openclaw/workspace/projects/xiande-cloud/scripts/start-production.sh
 Restart=always
@@ -35,10 +37,6 @@ User=root
 [Install]
 WantedBy=multi-user.target
 ```
-
-保存到：
-
-`/etc/systemd/system/xiande-cloud.service`
 
 然后执行：
 
