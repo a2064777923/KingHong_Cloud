@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { CalendarClock, Download, Eye, KeyRound } from "lucide-react";
 import { db } from "@/lib/db";
+import { formatDateTime } from "@/lib/date";
 import { formatBytes } from "@/lib/files";
 import { FileKindIcon } from "@/components/file-kind-icon";
 
@@ -18,6 +19,10 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
   if (!share) notFound();
 
+  const now = new Date();
+  const expired = share.expiresAt ? share.expiresAt.getTime() < now.getTime() : false;
+  const exhausted = share.maxDownloads !== null ? share.downloadCount >= share.maxDownloads : false;
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl sm:p-8">
@@ -25,7 +30,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Shared Files</p>
             <h1 className="mt-2 text-3xl font-semibold">分享文件</h1>
-            <p className="mt-3 text-sm leading-7 text-slate-300">该页面面向外部访问者，强调清爽、可信、低认知负担。能预览就预览，不能预览就直接下载，别故作高深。</p>
+            <p className="mt-3 text-sm leading-7 text-slate-300">该页面面向外部访问者，强调清爽、可信、低认知负担。当前已接入真实下载链路与失效判断，密码输入交互下一步补到页面上。</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-slate-300">
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1">
@@ -34,10 +39,16 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
             </span>
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1">
               <CalendarClock className="h-3.5 w-3.5" />
-              {share.expiresAt ? share.expiresAt.toLocaleString("zh-CN") : "未设置失效时间"}
+              {share.expiresAt ? formatDateTime(share.expiresAt) : "未设置失效时间"}
             </span>
           </div>
         </div>
+
+        {expired || exhausted ? (
+          <div className="mt-6 rounded-3xl border border-amber-300/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
+            {expired ? "该分享已过期。" : "该分享的最大下载次数已用尽。"}
+          </div>
+        ) : null}
 
         <div className="mt-6 grid gap-3">
           {share.items.map(({ file }) => (
@@ -52,14 +63,14 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm">
+                <a href={`/api/files/${file.id}/preview`} target="_blank" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm">
                   <Eye className="h-4 w-4" />
                   预览
-                </button>
-                <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950">
+                </a>
+                <a href={`/api/shares/${share.token}/download/${file.id}`} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950">
                   <Download className="h-4 w-4" />
                   下载
-                </button>
+                </a>
               </div>
             </article>
           ))}
@@ -76,7 +87,7 @@ function DemoSharePage() {
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Demo Share</p>
         <h1 className="mt-2 text-3xl font-semibold">分享展示页原型</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-          这里模拟外部访问者看到的页面：入口清晰、主按钮明确、文件信息可扫一眼就懂。后续会接上分享密码校验、下载次数扣减、预览流与真实下载链路。
+          这里模拟外部访问者看到的页面：入口清晰、主按钮明确、文件信息可扫一眼就懂。真实下载链路已经接入，剩余是密码输入与更完整的预览交互。
         </p>
       </section>
     </main>

@@ -29,13 +29,13 @@ pnpm install
 pnpm prisma generate
 pnpm prisma db push
 pnpm tsx scripts/seed.ts
-pnpm dev --hostname 0.0.0.0 --port 3000
+pnpm dev --hostname 0.0.0.0 --port 9527
 ```
 
 然后访问：
 
-- 本机：`http://127.0.0.1:3000`
-- 公网：`http://<你的服务器IP>:3000`
+- 本机：`http://127.0.0.1:9527`
+- 公网：`http://<你的服务器IP>:9527`
 
 ## 环境变量
 
