@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "skills": {
+    "openclaw-tavily-search": {
+      "version": "0.1.0",
+      "installedAt": 1774597303048
+    },
+    "summarize": {
+      "version": "1.0.0",
+      "installedAt": 1774597304633
+    },
+    "memory-hygiene": {
+      "version": "1.0.0",
+      "installedAt": 1774597306962
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1774597308504
+    },
+    "agent-browser-clawdbot": {
+      "version": "0.1.0",
+      "installedAt": 1774597310193
+    },
+    "tencentcloud-lighthouse-skill": {
+      "version": "1.0.0",
+      "installedAt": 1774597312595
+    },
+    "tencent-docs": {
+      "version": "1.0.21",
+      "installedAt": 1774597318858
+    },
+    "tencent-cos-skill": {
+      "version": "1.0.6",
+      "installedAt": 1774597322211
+    },
+    "tencent-meeting-skill": {
+      "version": "1.0.0",
+      "installedAt": 1774597324890
+    },
+    "ima-skills": {
+      "version": "1.1.2",
+      "installedAt": 1774597327547
+    },
+    "tavily-search": {
+      "version": "1.0.0",
+      "installedAt": 1774841484064
+    },
+    "nano-banana-pro": {
+      "version": "1.0.1",
+      "installedAt": 1774841597901
+    },
+    "humanizer-zh": {
+      "version": "1.0.0",
+      "installedAt": 1774841644121
+    },
+    "baidu-search": {
+      "version": "1.1.0",
+      "installedAt": 1774842527327
+    },
+    "multi-search-engine": {
+      "version": "2.0.1",
+      "installedAt": 1774842527542
+    },
+    "daily-hot-news": {
+      "version": "1.0.1",
+      "installedAt": 1774842527605
+    },
+    "weibo-hot-trend": {
+      "version": "1.0.0",
+      "installedAt": 1774842527630
+    },
+    "bilibili-analytics": {
+      "version": "1.0.0",
+      "installedAt": 1774842527744
+    },
+    "news-aggregator-skill": {
+      "version": "0.1.0",
+      "installedAt": 1774842527793
+    },
+    "zhihu-hot-cn": {
+      "version": "1.0.0",
+      "installedAt": 1774842629652
+    },
+    "zhsearch": {
+      "version": "1.0.0",
+      "installedAt": 1774842629675
+    },
+    "cn-web-search": {
+      "version": "2.0.0",
+      "installedAt": 1774842629690
+    },
+    "douyin-hot-trend": {
+      "version": "1.1.0",
+      "installedAt": 1774842629693
+    },
+    "url-reader": {
+      "version": "0.1.1",
+      "installedAt": 1774842629696
+    },
+    "content-hunter": {
+      "version": "1.0.2",
+      "installedAt": 1774842629722
+    },
+    "tweet-monitor-pro": {
+      "version": "1.0.0",
+      "installedAt": 1774857800179
+    },
+    "github-trending-stable": {
+      "version": "1.0.0",
+      "installedAt": 1774857800199
+    },
+    "web-tools-guide": {
+      "version": "1.0.0",
+      "installedAt": 1775028302250
+    },
+    "mcd": {
+      "version": "1.0.1",
+      "installedAt": 1775051243468
+    }
+  }
+}

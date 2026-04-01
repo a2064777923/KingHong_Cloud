@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "skills": {
+    "tavily-search": {
+      "name": "Tavily Web Search",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=tavily-search",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "nano-banana-pro": {
+      "name": "Nano Banana Pro",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=nano-banana-pro",
+      "source": "skillhub",
+      "version": "1.0.1"
+    },
+    "humanizer-zh": {
+      "name": "humanizer-zh",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=humanizer-zh",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "baidu-search": {
+      "name": "baidu web search",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=baidu-search",
+      "source": "skillhub",
+      "version": "1.1.0"
+    },
+    "multi-search-engine": {
+      "name": "Multi Search Engine",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=multi-search-engine",
+      "source": "skillhub",
+      "version": "2.0.1"
+    },
+    "daily-hot-news": {
+      "name": "每日热榜",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=daily-hot-news",
+      "source": "skillhub",
+      "version": "1.0.1"
+    },
+    "weibo-hot-trend": {
+      "name": "获取微博热搜榜数据，返回热搜标题、热度值和跳转链接。当用户需要查看微博热搜、微博热点、微博热榜时使用此技能。支持自定义获取条数（默认50条）。",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=weibo-hot-trend",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "bilibili-analytics": {
+      "name": "Bilibili Analytics",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=bilibili-analytics",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "news-aggregator-skill": {
+      "name": "News Aggregator Skill",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=news-aggregator-skill",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "zhihu-hot-cn": {
+      "name": "Zhihu Hot CN",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=zhihu-hot-cn",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "zhsearch": {
+      "name": "Chinese Search Enhancement",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=zhsearch",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "cn-web-search": {
+      "name": "CN Web Search",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=cn-web-search",
+      "source": "skillhub",
+      "version": "2.0.0"
+    },
+    "douyin-hot-trend": {
+      "name": "Douyin Hot Trend",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=douyin-hot-trend",
+      "source": "skillhub",
+      "version": "1.1.0"
+    },
+    "url-reader": {
+      "name": "Url Reader",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=url-reader",
+      "source": "skillhub",
+      "version": "0.1.1"
+    },
+    "content-hunter": {
+      "name": "内容捕手",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=content-hunter",
+      "source": "skillhub",
+      "version": "1.0.2"
+    },
+    "tweet-monitor-pro": {
+      "name": "Tweet Monitor Pro",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=tweet-monitor-pro",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "github-trending-stable": {
+      "name": "Github Trending",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=github-trending-stable",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "mcd": {
+      "name": "Mcdonald - 麦当劳助手",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=mcd",
+      "source": "skillhub",
+      "version": "1.0.1"
+    }
+  }
+}
