@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { resolveStoragePath } from "@/lib/files";
 import { isShareVerified } from "@/lib/share-auth";
 
-export async function GET(request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
+export async function GET(_request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
   const { token, fileId } = await context.params;
 
   const share = await db.share.findUnique({
@@ -19,8 +19,8 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
     return Response.json({ ok: false, message: "分享已过期" }, { status: 410 });
   }
 
-  if (share.maxDownloads !== null && share.downloadCount >= share.maxDownloads) {
-    return Response.json({ ok: false, message: "分享下载次数已用尽" }, { status: 410 });
+  if (!share.allowPreview) {
+    return Response.json({ ok: false, message: "当前分享未开放预览" }, { status: 403 });
   }
 
   if (share.passwordHash) {
@@ -38,25 +38,20 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
   const file = item.file;
   const buffer = await fs.readFile(resolveStoragePath(file.storageKey));
 
-  await db.share.update({
-    where: { id: share.id },
-    data: { downloadCount: { increment: 1 } },
-  });
-
   await db.shareAccessLog.create({
     data: {
       shareId: share.id,
-      action: "download",
-      userAgent: request.headers.get("user-agent"),
-      ip: request.headers.get("x-forwarded-for"),
+      action: "preview",
+      userAgent: null,
+      ip: null,
     },
   });
 
   return new Response(buffer, {
     headers: {
       "Content-Type": file.mimeType,
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(file.originalName)}`,
       "Content-Length": String(buffer.byteLength),
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.originalName)}`,
     },
   });
 }
