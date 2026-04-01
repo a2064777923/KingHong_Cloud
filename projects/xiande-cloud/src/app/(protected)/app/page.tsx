@@ -10,15 +10,18 @@ import { AppShell } from "@/components/app-shell";
 import { CreateFolderPanel } from "@/components/create-folder-panel";
 import { FolderActions } from "@/components/folder-actions";
 import { FileMovePanel } from "@/components/file-move-panel";
+import { PaginationBar } from "@/components/pagination-bar";
 
 export default async function AppPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ folder?: string }>;
+  searchParams?: Promise<{ folder?: string; page?: string; pageSize?: string }>;
 }) {
   const user = await requireUser();
   const params = (await searchParams) ?? {};
   const currentFolderId = params.folder ?? null;
+  const page = Math.max(1, Number(params.page ?? "1") || 1);
+  const pageSize = Math.min(24, Math.max(6, Number(params.pageSize ?? "12") || 12));
 
   const currentFolder = currentFolderId
     ? await db.folder.findFirst({
@@ -35,16 +38,18 @@ export default async function AppPage({
         .map((_, index, parts) => `/${parts.slice(0, index + 1).join("/")}`)
     : [];
 
-  const [files, folders, breadcrumbFolders, allFolders] = await Promise.all([
+  const [files, folders, breadcrumbFolders, allFolders, fileCount, folderCount] = await Promise.all([
     db.fileEntry.findMany({
       where: { ownerId: user.id, folderId: effectiveFolderId },
       orderBy: { createdAt: "desc" },
-      take: 24,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     }),
     db.folder.findMany({
       where: { ownerId: user.id, parentId: effectiveFolderId },
       orderBy: { createdAt: "asc" },
-      take: 24,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     }),
     breadcrumbPaths.length
       ? db.folder.findMany({
@@ -61,6 +66,8 @@ export default async function AppPage({
       orderBy: { path: "asc" },
       select: { id: true, name: true, path: true },
     }),
+    db.fileEntry.count({ where: { ownerId: user.id, folderId: effectiveFolderId } }),
+    db.folder.count({ where: { ownerId: user.id, parentId: effectiveFolderId } }),
   ]);
 
   return (
@@ -118,7 +125,7 @@ export default async function AppPage({
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">文件夹</h3>
-                <span className="text-sm text-slate-400">{folders.length}</span>
+                <span className="text-sm text-slate-400">{folderCount}</span>
               </div>
               <div className="mt-4 space-y-3">
                 {folders.length === 0 ? (
@@ -181,6 +188,14 @@ export default async function AppPage({
             )}
           </div>
         </section>
+
+        <PaginationBar
+          page={page}
+          pageSize={pageSize}
+          total={Math.max(fileCount, folderCount)}
+          pathname="/app"
+          query={{ folder: effectiveFolderId ?? undefined }}
+        />
       </div>
     </AppShell>
   );
