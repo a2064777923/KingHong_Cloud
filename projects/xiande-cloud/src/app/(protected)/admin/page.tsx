@@ -6,8 +6,15 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatBytes } from "@/lib/files";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ page?: string; pageSize?: string }>;
+}) {
   const user = await requireAdmin();
+  const params = (await searchParams) ?? {};
+  const page = Math.max(1, Number(params.page ?? "1") || 1);
+  const pageSize = Math.min(20, Math.max(5, Number(params.pageSize ?? "10") || 10));
 
   const [userCount, shareCount, fileCount, files, users] = await Promise.all([
     db.user.count(),
@@ -16,6 +23,8 @@ export default async function AdminPage() {
     db.fileEntry.findMany({ select: { sizeBytes: true }, take: 500 }),
     db.user.findMany({
       orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       select: {
         id: true,
         username: true,
@@ -44,7 +53,7 @@ export default async function AdminPage() {
           <MetricCard label="容量" value={formatBytes(totalBytes)} hint="样本统计" icon={<BarChart3 className="h-5 w-5" />} />
         </section>
 
-        <AdminUserPanel initialUsers={initialUsers} />
+        <AdminUserPanel initialUsers={initialUsers} page={page} pageSize={pageSize} total={userCount} />
       </div>
     </AppShell>
   );

@@ -2,6 +2,7 @@
 
 import { ChevronDown, Info } from "lucide-react";
 import { useState } from "react";
+import { PaginationBar } from "@/components/pagination-bar";
 
 type UserRecord = {
   id: string;
@@ -12,7 +13,17 @@ type UserRecord = {
   createdAt: string;
 };
 
-export function AdminUserPanel({ initialUsers }: { initialUsers: UserRecord[] }) {
+export function AdminUserPanel({
+  initialUsers,
+  page,
+  pageSize,
+  total,
+}: {
+  initialUsers: UserRecord[];
+  page: number;
+  pageSize: number;
+  total: number;
+}) {
   const [users, setUsers] = useState(initialUsers);
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({ username: "", password: "", role: "USER", maxUploadMb: "100" });
@@ -40,7 +51,7 @@ export function AdminUserPanel({ initialUsers }: { initialUsers: UserRecord[] })
 
     setUsers([result.data, ...users]);
     setForm({ username: "", password: "", role: "USER", maxUploadMb: "100" });
-    setMessage("用户创建成功");
+    setMessage("用户创建成功" + (page > 1 ? "，刷新后可在第一页查看" : ""));
   }
 
   async function resetPassword(userId: string) {
@@ -140,6 +151,10 @@ export function AdminUserPanel({ initialUsers }: { initialUsers: UserRecord[] })
               </button>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4">
+          <PaginationBar page={page} pageSize={pageSize} total={total} pathname="/admin" />
         </div>
       </div>
     </div>
