@@ -145,35 +145,37 @@ export default async function AppPage({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2 md:gap-4">
             {files.length === 0 ? (
               <div className="col-span-full rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-sm text-slate-300">
                 当前目录下暂无文件
               </div>
             ) : (
               files.map((file) => (
-                <article key={file.id} className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.06]">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-cyan-400/10 p-3 text-cyan-200">
+                <article key={file.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:rounded-3xl sm:p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.06]">
+                  <div className="flex items-start justify-between gap-2.5 sm:gap-4">
+                    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                      <div className="rounded-xl bg-cyan-400/10 p-2 text-cyan-200 sm:rounded-2xl sm:p-3">
                         <FileKindIcon kind={file.kind} />
                       </div>
-                      <div>
-                        <h3 className="max-w-52 truncate text-sm font-medium">{file.originalName}</h3>
-                        <p className="mt-1 text-xs text-slate-400">{file.mimeType}</p>
+                      <div className="min-w-0">
+                        <h3 className="truncate text-sm font-medium">{file.originalName}</h3>
+                        <p className="mt-0.5 truncate text-[11px] leading-4 text-slate-400">{file.mimeType}</p>
                       </div>
                     </div>
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
+                    <span className="shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-slate-300 sm:px-3 sm:py-1 sm:text-xs">
                       {formatBytes(file.sizeBytes)}
                     </span>
                   </div>
-                  <div className="mt-4 text-xs text-slate-400">{formatDateTime(file.createdAt)}</div>
-                  <div className="mt-5 grid grid-cols-3 gap-2 text-sm">
-                    <a href={`/app/preview/${file.id}${effectiveFolderId ? `?folder=${effectiveFolderId}` : ""}`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">预览</a>
-                    <a href={`/api/files/${file.id}/download`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">下载</a>
-                    <a href={`/app/shares`} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">分享</a>
+                  <div className="mt-2 text-[11px] leading-4 text-slate-400 sm:mt-4 sm:text-xs">{formatDateTime(file.createdAt)}</div>
+                  <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-xs sm:mt-5 sm:gap-2 sm:text-sm">
+                    <a href={`/app/preview/${file.id}${effectiveFolderId ? `?folder=${effectiveFolderId}` : ""}`} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center sm:rounded-2xl sm:px-3 sm:py-2">预览</a>
+                    <a href={`/api/files/${file.id}/download`} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center sm:rounded-2xl sm:px-3 sm:py-2">下载</a>
+                    <a href={`/app/shares`} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center sm:rounded-2xl sm:px-3 sm:py-2">分享</a>
                   </div>
-                  <FileMovePanel fileId={file.id} currentFolderId={effectiveFolderId} folders={allFolders.filter((folder) => folder.id !== effectiveFolderId)} />
+                  <div className="mt-2 sm:mt-3">
+                    <FileMovePanel fileId={file.id} currentFolderId={effectiveFolderId} folders={allFolders.filter((folder) => folder.id !== effectiveFolderId)} />
+                  </div>
                 </article>
               ))
             )}
