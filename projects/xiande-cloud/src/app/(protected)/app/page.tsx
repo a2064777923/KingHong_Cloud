@@ -11,6 +11,7 @@ import { CreateFolderPanel } from "@/components/create-folder-panel";
 import { FolderActions } from "@/components/folder-actions";
 import { FileMovePanel } from "@/components/file-move-panel";
 import { PaginationBar } from "@/components/pagination-bar";
+import { ShareCreatePanel } from "@/components/share-create-panel";
 
 export default async function AppPage({
   searchParams,
@@ -118,9 +119,10 @@ export default async function AppPage({
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-          <div className="space-y-4">
+        <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr] xl:items-start">
+          <div className="space-y-4 xl:sticky xl:top-4 xl:self-start">
             <CreateFolderPanel parentId={effectiveFolderId} />
+            <ShareCreatePanel files={files.map((file) => ({ id: file.id, originalName: file.originalName }))} />
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
               <div className="flex items-center justify-between">
