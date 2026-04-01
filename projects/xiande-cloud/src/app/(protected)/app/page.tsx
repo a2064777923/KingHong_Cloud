@@ -74,8 +74,8 @@ export default async function AppPage({
   return (
     <AppShell title="文件" subtitle={user.username} pathname="/app" isAdmin={user.role === "ADMIN"}>
       <div className="space-y-6">
-        <section className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-4 py-3">
+        <section className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-4">
+          <div className="flex min-w-0 items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-4 py-3">
             <Search className="h-4 w-4 text-slate-400" />
             <input
               disabled
@@ -83,8 +83,8 @@ export default async function AppPage({
               className="w-full bg-transparent text-sm outline-none placeholder:text-slate-500"
             />
           </div>
-          <div className="flex gap-3">
-            <button className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-start gap-2 sm:gap-3 lg:justify-end">
+            <button className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm whitespace-nowrap">
               <SlidersHorizontal className="h-4 w-4" />
               排序
             </button>

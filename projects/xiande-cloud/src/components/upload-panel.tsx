@@ -37,12 +37,12 @@ export function UploadPanel({ folderId }: { folderId?: string | null }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950">
+    <div className="flex min-w-0 flex-col items-stretch gap-1.5 sm:gap-2">
+      <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950 whitespace-nowrap">
         {busy ? "上传中..." : "上传"}
         <input type="file" className="hidden" onChange={onChange} disabled={busy} />
       </label>
-      {message ? <p className="text-xs text-slate-300">{message}</p> : null}
+      {message ? <p className="max-w-[180px] text-[11px] leading-4 text-slate-300 sm:max-w-none sm:text-xs">{message}</p> : null}
     </div>
   );
 }

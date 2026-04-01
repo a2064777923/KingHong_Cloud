@@ -113,7 +113,7 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
         type="button"
         onClick={createShare}
         disabled={busy || files.length === 0}
-        className="mt-4 rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-medium text-slate-950 disabled:opacity-70"
+        className="mt-4 w-full rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-medium text-slate-950 disabled:opacity-70 sm:w-auto"
       >
         {busy ? "创建中..." : `创建分享（已选 ${selectedFiles.length} 个）`}
       </button>
@@ -121,7 +121,8 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
       {message ? <p className="mt-3 text-sm text-slate-300">{message}</p> : null}
       {shareUrl ? (
         <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/40 p-3 text-sm text-cyan-200 break-all">
-          {shareUrl}
+          <div className="text-xs text-slate-300">分享链接</div>
+          <div className="mt-1">{shareUrl}</div>
         </div>
       ) : null}
     </div>
