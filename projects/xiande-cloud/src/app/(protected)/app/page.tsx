@@ -9,9 +9,9 @@ import { UploadPanel } from "@/components/upload-panel";
 import { AppShell } from "@/components/app-shell";
 import { CreateFolderPanel } from "@/components/create-folder-panel";
 import { FolderActions } from "@/components/folder-actions";
-import { FileMovePanel } from "@/components/file-move-panel";
 import { PaginationBar } from "@/components/pagination-bar";
 import { ShareCreatePanel } from "@/components/share-create-panel";
+import { FileCardActions } from "@/components/file-card-actions";
 
 export default async function AppPage({
   searchParams,
@@ -182,9 +182,7 @@ export default async function AppPage({
                     <a href={`/api/files/${file.id}/download`} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center sm:rounded-2xl sm:px-3 sm:py-2">下载</a>
                     <a href={`/app/shares`} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center sm:rounded-2xl sm:px-3 sm:py-2">分享</a>
                   </div>
-                  <div className="mt-2 sm:mt-3">
-                    <FileMovePanel fileId={file.id} currentFolderId={effectiveFolderId} folders={allFolders.filter((folder) => folder.id !== effectiveFolderId)} />
-                  </div>
+                  <FileCardActions fileId={file.id} currentFolderId={effectiveFolderId} folders={allFolders.filter((folder) => folder.id !== effectiveFolderId)} />
                 </article>
               ))
             )}
