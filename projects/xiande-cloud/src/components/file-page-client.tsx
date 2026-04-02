@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CloudUpload, Share2, Trash2, X, Copy, Check } from "lucide-react";
 import { FileKindIcon } from "@/components/file-kind-icon";
 import { UploadProgressIndicator } from "@/components/upload-progress-indicator";
+import { StatusBanner } from "@/components/status-banner";
 import { copyText } from "@/lib/clipboard";
 import { type UploadProgress, uploadFilesSequentially } from "@/lib/upload-client";
+import { readApiResult } from "@/lib/http";
 import { FileKind } from "@prisma/client";
 
 // Helper functions (inlined to avoid import chain with server code)
@@ -44,12 +47,19 @@ type FileItem = {
 
 interface BatchActionsBarProps {
   selectedCount: number;
+  busy?: boolean;
   onClear: () => void;
   onDelete: () => void;
   onShare: () => void;
 }
 
-function BatchActionsBar({ selectedCount, onClear, onDelete, onShare }: BatchActionsBarProps) {
+function BatchActionsBar({
+  selectedCount,
+  busy = false,
+  onClear,
+  onDelete,
+  onShare,
+}: BatchActionsBarProps) {
   if (selectedCount === 0) return null;
 
   return (
@@ -58,6 +68,7 @@ function BatchActionsBar({ selectedCount, onClear, onDelete, onShare }: BatchAct
         <span className="text-sm font-medium text-cyan-200">已选择 {selectedCount} 个文件</span>
         <button
           onClick={onClear}
+          disabled={busy}
           className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 hover:bg-white/8"
         >
           <X className="h-3.5 w-3.5" />
@@ -67,17 +78,19 @@ function BatchActionsBar({ selectedCount, onClear, onDelete, onShare }: BatchAct
       <div className="flex items-center gap-2">
         <button
           onClick={onShare}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300 disabled:opacity-70"
         >
           <Share2 className="h-4 w-4" />
           批量分享
         </button>
         <button
           onClick={onDelete}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm text-red-300 hover:bg-red-400/20"
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm text-red-300 hover:bg-red-400/20 disabled:opacity-70"
         >
           <Trash2 className="h-4 w-4" />
-          批量删除
+          {busy ? "删除中..." : "批量删除"}
         </button>
       </div>
     </div>
@@ -87,9 +100,10 @@ function BatchActionsBar({ selectedCount, onClear, onDelete, onShare }: BatchAct
 interface BatchShareModalProps {
   fileIds: string[];
   onClose: () => void;
+  onSuccess: (message: string) => void;
 }
 
-function BatchShareModal({ fileIds, onClose }: BatchShareModalProps) {
+function BatchShareModal({ fileIds, onClose, onSuccess }: BatchShareModalProps) {
   const [password, setPassword] = useState("");
   const [maxDownloads, setMaxDownloads] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
@@ -121,6 +135,7 @@ function BatchShareModal({ fileIds, onClose }: BatchShareModalProps) {
       if (result.ok) {
         setShareUrl(result.data.url ?? `${window.location.origin}/share/${result.data.token}`);
         setMessage("分享链接已创建");
+        onSuccess(`已创建 ${fileIds.length} 个文件的批量分享`);
       } else {
         setMessage(result.message || "创建失败");
       }
@@ -240,6 +255,8 @@ export function FilePageClient({
   initialFiles: FileItem[];
   folderId: string | null;
 }) {
+  const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
   const [files, setFiles] = useState(initialFiles);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -247,6 +264,17 @@ export function FilePageClient({
   const [uploadMessage, setUploadMessage] = useState("");
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [status, setStatus] = useState<{ tone: "info" | "success" | "error" | "pending"; message: string } | null>(null);
+
+  useEffect(() => {
+    setFiles(initialFiles);
+  }, [initialFiles]);
+
+  const allSelected = useMemo(
+    () => files.length > 0 && selectedIds.length === files.length,
+    [files.length, selectedIds.length],
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -266,29 +294,42 @@ export function FilePageClient({
 
   const handleBatchDelete = useCallback(async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`确定要删除选中的 ${selectedIds.length} 个文件吗？此操作不可恢复。`)) return;
+    const deletingIds = [...selectedIds];
+    if (!confirm(`确定要删除选中的 ${deletingIds.length} 个文件吗？此操作不可恢复。`)) return;
+
+    setDeleteBusy(true);
+    setStatus({ tone: "pending", message: `正在删除 ${deletingIds.length} 个文件...` });
 
     try {
       const response = await fetch("/api/files/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileIds: selectedIds }),
+        body: JSON.stringify({ fileIds: deletingIds }),
       });
 
+      const result = await readApiResult<{ deleted: number }>(response);
       if (response.ok) {
-        setFiles((prev) => prev.filter((f) => !selectedIds.includes(f.id)));
+        setFiles((prev) => prev.filter((f) => !deletingIds.includes(f.id)));
         setSelectedIds([]);
+        setStatus({
+          tone: "success",
+          message: `已删除 ${result.data?.deleted ?? deletingIds.length} 个文件`,
+        });
+        startTransition(() => router.refresh());
       } else {
-        alert("删除失败");
+        setStatus({ tone: "error", message: result.message ?? "删除失败" });
       }
     } catch {
-      alert("删除失败，请重试");
+      setStatus({ tone: "error", message: "删除失败，请重试" });
+    } finally {
+      setDeleteBusy(false);
     }
-  }, [selectedIds]);
+  }, [router, selectedIds, startTransition]);
 
   const handleBatchShare = useCallback(() => {
     if (selectedIds.length > 0) {
       setShowShareModal(true);
+      setStatus(null);
     }
   }, [selectedIds]);
 
@@ -313,6 +354,7 @@ export function FilePageClient({
     setUploading(true);
     setUploadMessage("");
     setUploadProgress(null);
+    setStatus({ tone: "pending", message: `准备上传 ${droppedFiles.length} 个文件...` });
 
     const { failed, successCount } = await uploadFilesSequentially({
       files: droppedFiles,
@@ -330,17 +372,19 @@ export function FilePageClient({
           : `上传失败：${failed.join("、")}`,
       );
       if (successCount > 0) {
-        window.location.reload();
+        setStatus({ tone: "info", message: `已上传 ${successCount} 个文件，正在刷新列表...` });
+        startTransition(() => router.refresh());
       }
       return;
     }
 
     try {
-      window.location.reload();
+      setStatus({ tone: "success", message: `上传成功，共 ${droppedFiles.length} 个文件` });
+      startTransition(() => router.refresh());
     } catch {
       setUploadMessage("上传失败");
     }
-  }, [folderId]);
+  }, [folderId, router, startTransition]);
 
   return (
     <div
@@ -364,10 +408,18 @@ export function FilePageClient({
       {/* Batch actions bar */}
       <BatchActionsBar
         selectedCount={selectedIds.length}
+        busy={deleteBusy}
         onClear={handleClearSelection}
         onDelete={handleBatchDelete}
         onShare={handleBatchShare}
       />
+
+      {selectedIds.length === 0 && files.length > 0 ? (
+        <StatusBanner tone="info" message="先勾选文件，再使用顶部的批量分享或批量删除。" className="mt-4" />
+      ) : null}
+
+      {status ? <StatusBanner tone={status.tone} message={status.message} className="mt-4" /> : null}
+      {isRefreshing ? <StatusBanner tone="pending" message="正在同步最新列表..." className="mt-4" /> : null}
 
       {(uploading || uploadProgress || uploadMessage) && (
         <div className="mt-4 flex flex-col gap-2">
@@ -384,7 +436,7 @@ export function FilePageClient({
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-slate-600 bg-slate-800"
-              checked={selectedIds.length > 0 && selectedIds.length === files.length}
+              checked={allSelected}
               onChange={toggleSelectAll}
             />
           </div>
@@ -422,16 +474,16 @@ export function FilePageClient({
               <div className="flex items-center text-slate-400 text-xs">{file.mimeType}</div>
               <div className="flex items-center text-slate-300">{formatBytes(file.sizeBytes)}</div>
               <div className="flex items-center text-slate-400 text-xs">{formatDateTime(file.createdAt)}</div>
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2 self-center">
                 <a
                   href={`/app/preview/${file.id}${folderId ? `?folder=${folderId}` : ""}`}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs hover:bg-white/8"
+                  className="inline-flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs hover:bg-white/8"
                 >
                   预览
                 </a>
                 <a
                   href={`/api/files/${file.id}/download`}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs hover:bg-white/8"
+                  className="inline-flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs hover:bg-white/8"
                 >
                   下载
                 </a>
@@ -474,18 +526,17 @@ export function FilePageClient({
               <div className="mt-2 flex gap-2 text-xs">
                 <a
                   href={`/app/preview/${file.id}${folderId ? `?folder=${folderId}` : ""}`}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] py-2 text-center"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-center"
                 >
                   预览
                 </a>
                 <a
                   href={`/api/files/${file.id}/download`}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] py-2 text-center"
+                  className="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-center"
                 >
                   下载
                 </a>
               </div>
-              <p className="mt-2 text-[11px] text-slate-400">分享请先勾选复选框后使用顶部批量分享</p>
             </article>
           ))
         )}
@@ -496,6 +547,7 @@ export function FilePageClient({
         <BatchShareModal
           fileIds={selectedIds}
           onClose={() => setShowShareModal(false)}
+          onSuccess={(message) => setStatus({ tone: "success", message })}
         />
       )}
     </div>

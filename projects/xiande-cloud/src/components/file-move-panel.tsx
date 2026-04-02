@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { StatusBanner } from "@/components/status-banner";
+import { readApiResult } from "@/lib/http";
 
 type FolderOption = {
   id: string;
@@ -18,13 +21,15 @@ export function FileMovePanel({
   currentFolderId: string | null;
   folders: FolderOption[];
 }) {
+  const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
   const [targetFolderId, setTargetFolderId] = useState(currentFolderId ?? "root");
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<{ tone: "success" | "error" | "pending"; message: string } | null>(null);
 
   async function moveFile() {
     setBusy(true);
-    setMessage("");
+    setStatus({ tone: "pending", message: "正在移动文件..." });
 
     const response = await fetch(`/api/files/${fileId}`, {
       method: "PATCH",
@@ -32,16 +37,16 @@ export function FileMovePanel({
       body: JSON.stringify({ folderId: targetFolderId === "root" ? null : targetFolderId }),
     });
 
-    const result = await response.json();
+    const result = await readApiResult(response);
     setBusy(false);
 
     if (!response.ok) {
-      setMessage(result.message ?? "移动失败");
+      setStatus({ tone: "error", message: result.message ?? "移动失败" });
       return;
     }
 
-    setMessage("文件已移动");
-    window.location.reload();
+    setStatus({ tone: "success", message: "文件已移动，正在刷新..." });
+    startTransition(() => router.refresh());
   }
 
   return (
@@ -64,12 +69,12 @@ export function FileMovePanel({
       <button
         type="button"
         onClick={moveFile}
-        disabled={busy}
-        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-slate-300 hover:bg-white/8 disabled:opacity-60"
+        disabled={busy || isRefreshing}
+        className="inline-flex h-9 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-xs text-slate-300 hover:bg-white/8 disabled:opacity-60"
       >
-        {busy ? "移动中..." : "移动文件"}
+        {busy ? "移动中..." : isRefreshing ? "同步中..." : "移动文件"}
       </button>
-      {message ? <p className="text-xs text-slate-300">{message}</p> : null}
+      {status ? <StatusBanner tone={status.tone} message={status.message} /> : null}
     </div>
   );
 }

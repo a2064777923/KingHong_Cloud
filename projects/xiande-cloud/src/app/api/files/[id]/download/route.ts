@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { resolveStoragePath } from "@/lib/files";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
@@ -15,6 +16,18 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 
   const absolutePath = resolveStoragePath(file.storageKey);
   const buffer = await fs.readFile(absolutePath);
+
+  await writeSystemLog({
+    action: "file.download",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "file",
+    targetId: file.id,
+    detail: `下载文件 ${file.originalName}`,
+    metadata: { mimeType: file.mimeType, sizeBytes: Number(file.sizeBytes) },
+    ...getRequestLogContext(_request),
+  });
 
   return new Response(buffer, {
     status: 200,

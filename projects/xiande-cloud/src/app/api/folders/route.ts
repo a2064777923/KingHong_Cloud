@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { badRequest, ok } from "@/lib/http";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 import { createFolderSchema } from "@/lib/validators";
 
 export async function POST(request: Request) {
@@ -25,6 +26,18 @@ export async function POST(request: Request) {
       parentId: parentId || null,
       path: `${parentPath}/${name}`.replace(/\/+/g, "/"),
     },
+  });
+
+  await writeSystemLog({
+    action: "folder.create",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "folder",
+    targetId: folder.id,
+    detail: `创建文件夹 ${folder.name}`,
+    metadata: { parentId: folder.parentId, path: folder.path },
+    ...getRequestLogContext(request),
   });
 
   return ok(folder, 201);
@@ -65,6 +78,18 @@ export async function PATCH(request: Request) {
     );
   });
 
+  await writeSystemLog({
+    action: "folder.rename",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "folder",
+    targetId: folder.id,
+    detail: `重命名文件夹为 ${name}`,
+    metadata: { previousPath: folder.path, nextPath },
+    ...getRequestLogContext(request),
+  });
+
   return ok({ id: folder.id, name, path: nextPath });
 }
 
@@ -81,5 +106,16 @@ export async function DELETE(request: Request) {
   if (childCount > 0) return badRequest("文件夹下仍有文件，请先移动或删除文件");
 
   await db.folder.delete({ where: { id: folder.id } });
+  await writeSystemLog({
+    action: "folder.delete",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "folder",
+    targetId: folder.id,
+    detail: `删除文件夹 ${folder.name}`,
+    metadata: { path: folder.path },
+    ...getRequestLogContext(request),
+  });
   return ok({ id: folder.id });
 }

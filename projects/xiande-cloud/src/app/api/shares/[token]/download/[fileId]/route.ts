@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { db } from "@/lib/db";
 import { resolveStoragePath } from "@/lib/files";
 import { isShareVerified } from "@/lib/share-auth";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 
 export async function GET(request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
   const { token, fileId } = await context.params;
@@ -50,6 +51,16 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
       userAgent: request.headers.get("user-agent"),
       ip: request.headers.get("x-forwarded-for"),
     },
+  });
+
+  await writeSystemLog({
+    action: "share.download",
+    actorUsername: "anonymous-share",
+    targetType: "share",
+    targetId: share.id,
+    detail: `下载分享文件 ${file.originalName}`,
+    metadata: { fileId: file.id, token: share.token },
+    ...getRequestLogContext(request),
   });
 
   return new Response(buffer, {

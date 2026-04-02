@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { createInlineAbsoluteFileResponse, createInlineFileResponse } from "@/lib/files";
 import { isShareVerified } from "@/lib/share-auth";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 import { ensureLowResolutionVideoPreview, getVideoPreviewResponseMeta } from "@/lib/video-preview";
 
 export async function GET(request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
@@ -83,6 +84,16 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
         userAgent: null,
         ip: null,
       },
+    });
+
+    await writeSystemLog({
+      action: "share.preview",
+      actorUsername: "anonymous-share",
+      targetType: "share",
+      targetId: share.id,
+      detail: `预览分享文件 ${file.originalName}`,
+      metadata: { fileId: file.id, token: share.token, variant: variant ?? "default" },
+      ...getRequestLogContext(request),
     });
   }
 

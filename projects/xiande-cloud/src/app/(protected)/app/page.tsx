@@ -1,25 +1,75 @@
 import Link from "next/link";
-import { ChevronRight, Folder, Home, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronRight, Folder, Home } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { FileKind } from "@prisma/client";
-import { UploadPanel } from "@/components/upload-panel";
 import { AppShell } from "@/components/app-shell";
 import { CreateFolderPanel } from "@/components/create-folder-panel";
 import { FolderActions } from "@/components/folder-actions";
 import { PaginationBar } from "@/components/pagination-bar";
 import { FilePageClient } from "@/components/file-page-client";
+import { FileBrowserToolbar } from "@/components/file-browser-toolbar";
+
+type SortValue = "latest" | "oldest" | "name-asc" | "name-desc" | "size-desc" | "size-asc";
+
+function resolveFileOrderBy(sort: SortValue) {
+  switch (sort) {
+    case "oldest":
+      return { createdAt: "asc" as const };
+    case "name-asc":
+      return { originalName: "asc" as const };
+    case "name-desc":
+      return { originalName: "desc" as const };
+    case "size-asc":
+      return { sizeBytes: "asc" as const };
+    case "size-desc":
+      return { sizeBytes: "desc" as const };
+    case "latest":
+    default:
+      return { createdAt: "desc" as const };
+  }
+}
+
+function resolveFolderOrderBy(sort: SortValue) {
+  switch (sort) {
+    case "oldest":
+      return { createdAt: "asc" as const };
+    case "name-desc":
+      return { name: "desc" as const };
+    case "name-asc":
+      return { name: "asc" as const };
+    case "latest":
+    case "size-asc":
+    case "size-desc":
+    default:
+      return { createdAt: "desc" as const };
+  }
+}
 
 export default async function AppPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ folder?: string; page?: string; pageSize?: string }>;
+  searchParams?: Promise<{
+    folder?: string;
+    page?: string;
+    pageSize?: string;
+    q?: string;
+    sort?: string;
+  }>;
 }) {
   const user = await requireUser();
   const params = (await searchParams) ?? {};
   const currentFolderId = params.folder ?? null;
   const page = Math.max(1, Number(params.page ?? "1") || 1);
   const pageSize = Math.min(24, Math.max(6, Number(params.pageSize ?? "12") || 12));
+  const searchQuery = String(params.q ?? "").trim();
+  const sort = (
+    ["latest", "oldest", "name-asc", "name-desc", "size-desc", "size-asc"].includes(
+      String(params.sort ?? ""),
+    )
+      ? params.sort
+      : "latest"
+  ) as SortValue;
 
   const currentFolder = currentFolderId
     ? await db.folder.findFirst({
@@ -38,14 +88,34 @@ export default async function AppPage({
 
   const [files, folders, breadcrumbFolders, fileCount, folderCount] = await Promise.all([
     db.fileEntry.findMany({
-      where: { ownerId: user.id, folderId: effectiveFolderId },
-      orderBy: { createdAt: "desc" },
+      where: {
+        ownerId: user.id,
+        folderId: effectiveFolderId,
+        ...(searchQuery
+          ? {
+              originalName: {
+                contains: searchQuery,
+              },
+            }
+          : {}),
+      },
+      orderBy: resolveFileOrderBy(sort),
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
     db.folder.findMany({
-      where: { ownerId: user.id, parentId: effectiveFolderId },
-      orderBy: { createdAt: "asc" },
+      where: {
+        ownerId: user.id,
+        parentId: effectiveFolderId,
+        ...(searchQuery
+          ? {
+              name: {
+                contains: searchQuery,
+              },
+            }
+          : {}),
+      },
+      orderBy: resolveFolderOrderBy(sort),
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
@@ -59,8 +129,32 @@ export default async function AppPage({
           select: { id: true, name: true, path: true },
         })
       : Promise.resolve([]),
-    db.fileEntry.count({ where: { ownerId: user.id, folderId: effectiveFolderId } }),
-    db.folder.count({ where: { ownerId: user.id, parentId: effectiveFolderId } }),
+    db.fileEntry.count({
+      where: {
+        ownerId: user.id,
+        folderId: effectiveFolderId,
+        ...(searchQuery
+          ? {
+              originalName: {
+                contains: searchQuery,
+              },
+            }
+          : {}),
+      },
+    }),
+    db.folder.count({
+      where: {
+        ownerId: user.id,
+        parentId: effectiveFolderId,
+        ...(searchQuery
+          ? {
+              name: {
+                contains: searchQuery,
+              },
+            }
+          : {}),
+      },
+    }),
   ]);
 
   const fileItems = files.map((file) => ({
@@ -75,24 +169,11 @@ export default async function AppPage({
   return (
     <AppShell title="文件" subtitle={user.username} pathname="/app" isAdmin={user.role === "ADMIN"}>
       <div className="space-y-6">
-        {/* Top toolbar */}
-        <section className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
-          <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
-            <Search className="h-4 w-4 text-slate-400 shrink-0" />
-            <input
-              disabled
-              placeholder="搜索文件"
-              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-500"
-            />
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm whitespace-nowrap">
-              <SlidersHorizontal className="h-4 w-4" />
-              排序
-            </button>
-            <UploadPanel folderId={effectiveFolderId} />
-          </div>
-        </section>
+        <FileBrowserToolbar
+          folderId={effectiveFolderId}
+          initialQuery={searchQuery}
+          initialSort={sort}
+        />
 
         {/* Breadcrumb */}
         <section className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -159,7 +240,11 @@ export default async function AppPage({
           pageSize={pageSize}
           total={Math.max(fileCount, folderCount)}
           pathname="/app"
-          query={{ folder: effectiveFolderId ?? undefined }}
+          query={{
+            folder: effectiveFolderId ?? undefined,
+            q: searchQuery || undefined,
+            sort: sort !== "latest" ? sort : undefined,
+          }}
         />
       </div>
     </AppShell>

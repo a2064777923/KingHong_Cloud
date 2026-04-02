@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { detectFileKind, ensureDataDirs, formatBytes, resolveStoragePath } from "@/lib/files";
 import { badRequest, ok } from "@/lib/http";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 
 export async function POST(request: NextRequest) {
   const user = await requireUser();
@@ -73,6 +74,23 @@ export async function POST(request: NextRequest) {
       checksumSha256,
       kind,
     },
+  });
+
+  await writeSystemLog({
+    action: "file.upload",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "file",
+    targetId: record.id,
+    detail: `上传文件 ${record.originalName}`,
+    metadata: {
+      folderId,
+      mimeType: record.mimeType,
+      sizeBytes: file.size,
+      kind: record.kind,
+    },
+    ...getRequestLogContext(request),
   });
 
   return ok({

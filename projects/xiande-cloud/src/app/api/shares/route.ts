@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { buildShareUrl } from "@/lib/public-url";
 import { db } from "@/lib/db";
 import { badRequest, ok } from "@/lib/http";
+import { getRequestLogContext, writeSystemLog } from "@/lib/system-log";
 import { createShareSchema } from "@/lib/validators";
 
 export async function POST(request: Request) {
@@ -35,6 +36,24 @@ export async function POST(request: Request) {
         create: fileIds.map((fileId) => ({ fileId })),
       },
     },
+  });
+
+  await writeSystemLog({
+    action: "share.create",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "share",
+    targetId: share.id,
+    detail: `创建分享 ${share.token}`,
+    metadata: {
+      fileIds,
+      allowPreview: share.allowPreview,
+      maxDownloads: share.maxDownloads,
+      expiresAt: share.expiresAt?.toISOString() ?? null,
+      passwordProtected: Boolean(share.passwordHash),
+    },
+    ...getRequestLogContext(request),
   });
 
   return ok({
@@ -72,6 +91,17 @@ export async function DELETE(request: Request) {
       id: { in: shareIds },
       creatorId: user.id,
     },
+  });
+
+  await writeSystemLog({
+    action: "share.delete",
+    actorId: user.id,
+    actorUsername: user.username,
+    actorRole: user.role,
+    targetType: "share",
+    detail: `删除 ${result.count} 个分享`,
+    metadata: { shareIds },
+    ...getRequestLogContext(request),
   });
 
   return ok({ deleted: result.count });
