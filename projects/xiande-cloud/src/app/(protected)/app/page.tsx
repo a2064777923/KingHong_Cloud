@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { ChevronRight, Folder, Home, Search, SlidersHorizontal, Upload } from "lucide-react";
+import { ChevronRight, Folder, Home, Search, SlidersHorizontal } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatBytes } from "@/lib/files";
 import { FileKind } from "@prisma/client";
-import { FileKindIcon } from "@/components/file-kind-icon";
-import { formatDateTime } from "@/lib/date";
 import { UploadPanel } from "@/components/upload-panel";
 import { AppShell } from "@/components/app-shell";
 import { CreateFolderPanel } from "@/components/create-folder-panel";
@@ -39,7 +36,7 @@ export default async function AppPage({
         .map((_, index, parts) => `/${parts.slice(0, index + 1).join("/")}`)
     : [];
 
-  const [files, folders, breadcrumbFolders, allFolders, fileCount, folderCount] = await Promise.all([
+  const [files, folders, breadcrumbFolders, fileCount, folderCount] = await Promise.all([
     db.fileEntry.findMany({
       where: { ownerId: user.id, folderId: effectiveFolderId },
       orderBy: { createdAt: "desc" },
@@ -62,11 +59,6 @@ export default async function AppPage({
           select: { id: true, name: true, path: true },
         })
       : Promise.resolve([]),
-    db.folder.findMany({
-      where: { ownerId: user.id },
-      orderBy: { path: "asc" },
-      select: { id: true, name: true, path: true },
-    }),
     db.fileEntry.count({ where: { ownerId: user.id, folderId: effectiveFolderId } }),
     db.folder.count({ where: { ownerId: user.id, parentId: effectiveFolderId } }),
   ]);

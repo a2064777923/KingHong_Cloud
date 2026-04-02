@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Check, Copy } from "lucide-react";
+import { copyText } from "@/lib/clipboard";
 
 type ShareCreatePanelProps = {
   files: { id: string; originalName: string }[];
@@ -44,7 +46,7 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
       body: JSON.stringify({
         fileIds: selectedIds,
         password,
-        expiresAt,
+        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
         maxDownloads: maxDownloads ? Number(maxDownloads) : undefined,
         allowPreview,
       }),
@@ -60,6 +62,12 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
 
     setShareUrl(result.data.url);
     setMessage("分享链接已创建");
+  }
+
+  async function handleCopyShareUrl() {
+    if (!shareUrl) return;
+    const copied = await copyText(shareUrl);
+    setMessage(copied ? "链接已复制到剪贴板" : "复制失败，请手动复制");
   }
 
   return (
@@ -114,7 +122,7 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
             <input
               type="datetime-local"
               value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value ? new Date(e.target.value).toISOString() : "")}
+              onChange={(e) => setExpiresAt(e.target.value)}
               className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm outline-none focus:border-cyan-300/40"
             />
             <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200">
@@ -134,9 +142,24 @@ export function ShareCreatePanel({ files }: ShareCreatePanelProps) {
 
           {message ? <p className="mt-3 text-sm text-slate-300">{message}</p> : null}
           {shareUrl ? (
-            <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/40 p-3 text-sm text-cyan-200 break-all">
+            <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/40 p-3 text-sm text-cyan-200">
               <div className="text-xs text-slate-300">分享链接</div>
-              <div className="mt-1">{shareUrl}</div>
+              <div className="mt-1 flex items-start gap-2">
+                <div className="min-w-0 flex-1 break-all">{shareUrl}</div>
+                <button
+                  type="button"
+                  onClick={handleCopyShareUrl}
+                  className="shrink-0 rounded-xl bg-white/10 p-2 hover:bg-white/20"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              </div>
+              {message === "链接已复制到剪贴板" ? (
+                <p className="mt-2 flex items-center gap-1 text-xs text-green-300">
+                  <Check className="h-3.5 w-3.5" />
+                  {message}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useState } from "react";
 
 export function UploadPanel({ folderId }: { folderId?: string | null }) {
   const [message, setMessage] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [progressText, setProgressText] = useState<string>("");
-  const inputId = useMemo(() => `upload-input-${Math.random().toString(36).slice(2)}`, []);
+  const inputId = useId();
 
   async function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);

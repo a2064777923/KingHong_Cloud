@@ -1,7 +1,7 @@
 import { hashPassword, generateOpaqueToken } from "@/lib/crypto";
 import { requireUser } from "@/lib/auth";
+import { buildShareUrl } from "@/lib/public-url";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
 import { badRequest, ok } from "@/lib/http";
 import { createShareSchema } from "@/lib/validators";
 
@@ -40,6 +40,39 @@ export async function POST(request: Request) {
   return ok({
     id: share.id,
     token: share.token,
-    url: `${env.appBaseUrl}/share/${share.token}`,
+    url: buildShareUrl(share.token, request.headers),
   }, 201);
+}
+
+export async function DELETE(request: Request) {
+  const user = await requireUser();
+  const payload = (await request.json().catch(() => null)) as { shareIds?: unknown } | null;
+  const shareIdsRaw = Array.isArray(payload?.shareIds) ? payload.shareIds : [];
+  const shareIds = shareIdsRaw.filter(
+    (value): value is string => typeof value === "string" && value.trim().length > 0,
+  );
+
+  if (shareIds.length === 0) {
+    return badRequest("未选择分享链接");
+  }
+
+  const ownedShareCount = await db.share.count({
+    where: {
+      id: { in: shareIds },
+      creatorId: user.id,
+    },
+  });
+
+  if (ownedShareCount !== shareIds.length) {
+    return badRequest("部分分享不存在或无权限", 403);
+  }
+
+  const result = await db.share.deleteMany({
+    where: {
+      id: { in: shareIds },
+      creatorId: user.id,
+    },
+  });
+
+  return ok({ deleted: result.count });
 }

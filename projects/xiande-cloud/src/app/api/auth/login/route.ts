@@ -1,4 +1,3 @@
-import { UserRole } from "@prisma/client";
 import { authenticate, createSession } from "@/lib/auth";
 import { badRequest, ok } from "@/lib/http";
 import { loginSchema } from "@/lib/validators";

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { CloudUpload, Share2, Trash2, X, Copy, Check } from "lucide-react";
 import { FileKindIcon } from "@/components/file-kind-icon";
+import { copyText } from "@/lib/clipboard";
 import { FileKind } from "@prisma/client";
 
 // Helper functions (inlined to avoid import chain with server code)
@@ -128,11 +129,11 @@ function BatchShareModal({ fileIds, onClose }: BatchShareModalProps) {
     }
   }
 
-  function copyUrl() {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      setMessage("链接已复制到剪贴板");
-    }
+  async function copyUrl() {
+    if (!shareUrl) return;
+
+    const copied = await copyText(shareUrl);
+    setMessage(copied ? "链接已复制到剪贴板" : "复制失败，请手动复制");
   }
 
   return (
@@ -210,6 +211,7 @@ function BatchShareModal({ fileIds, onClose }: BatchShareModalProps) {
               <div className="flex items-center gap-2">
                 <div className="flex-1 text-sm text-cyan-200 break-all">{shareUrl}</div>
                 <button
+                  type="button"
                   onClick={copyUrl}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 shrink-0"
                 >
@@ -361,7 +363,7 @@ export function FilePageClient({
           <div>文件名</div>
           <div>类型</div>
           <div>大小</div>
-          <div>创建时间</div>
+          <div>上传时间</div>
           <div className="text-right">操作</div>
         </div>
 
@@ -437,6 +439,7 @@ export function FilePageClient({
                   <div className="min-w-0">
                     <h3 className="truncate text-sm font-medium">{file.originalName}</h3>
                     <p className="text-[11px] text-slate-400">{formatBytes(file.sizeBytes)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">上传于 {formatDateTime(file.createdAt)}</p>
                   </div>
                 </div>
               </div>
