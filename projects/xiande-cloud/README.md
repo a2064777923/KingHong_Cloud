@@ -1,17 +1,28 @@
 # 贤得慌又云里雾里
 
-私有部署的文件上传、预览、下载与分享服务。
+一个偏私有部署的云端文件上传、预览、下载与分享服务，面向桌面端和移动端文件管理场景。
 
 ## 当前能力
 
-- 账号登录
-- 文件上传 / 下载 / 预览
-- 文件夹结构
-- 分享链接
-- 分享密码、失效时间、下载次数控制
-- 管理端统计视图
+- 账号登录 / Session 鉴权
+- 文件上传、下载、预览
+- 文件夹结构管理
+- 文件多选、批量删除、批量创建分享链接
+- 分享密码、失效时间、最大下载次数控制
+- 管理端用户视图
+- 桌面端拖拽上传
+- 移动端多文件选择上传
 
-## 启动
+## 技术栈
+
+- Next.js 16 App Router
+- TypeScript
+- Tailwind CSS
+- Prisma + SQLite
+- Argon2 密码哈希
+- 本地文件系统存储
+
+## 快速启动
 
 ```bash
 pnpm install
@@ -21,11 +32,142 @@ pnpm seed
 pnpm dev
 ```
 
-访问：
+默认访问：
 
-- `http://127.0.0.1:9527`
-- `http://<公网IP>:9527`
+- 本机：`http://127.0.0.1:9527`
+- 局域网 / 公网：`http://<你的IP>:9527`
 
-## 生产化
+## 环境变量
 
-见 `DEPLOYMENT.md`
+复制 `.env.example` 为 `.env`，至少确认以下配置：
+
+```env
+DATABASE_URL="file:./prisma/dev.db"
+SESSION_SECRET="请改成足够长的随机字符串"
+APP_NAME="贤得慌又云里雾里"
+APP_BASE_URL="https://你的域名或公网地址"
+INITIAL_ADMIN_USERNAME="admin"
+INITIAL_ADMIN_PASSWORD="请改成你自己的管理员密码"
+FILES_ROOT="./data/files"
+MAX_UPLOAD_BYTES_USER="104857600"
+```
+
+### 关键说明
+
+#### 1. `APP_BASE_URL`
+
+这个值决定服务端生成的分享链接基址。
+
+- 如果写成 `http://127.0.0.1:9527`，外网用户一定打不开。
+- 生产环境必须改成真实可访问地址，例如：
+  - `http://公网IP:9527`
+  - `https://files.example.com`
+
+#### 2. 初始管理员账号
+
+首次 `pnpm seed` 会确保管理员账号存在。
+
+- 用户名来自 `INITIAL_ADMIN_USERNAME`
+- 密码来自 `INITIAL_ADMIN_PASSWORD`
+
+**不要依赖仓库里的示例值直接上线。**
+
+## 生产部署
+
+```bash
+pnpm install
+pnpm db:generate
+pnpm db:push
+pnpm build
+./scripts/start-production.sh
+```
+
+`scripts/start-production.sh` 会同步 standalone 运行所需静态资源，避免页面能开但 CSS / JS 404。
+
+详细说明见：`DEPLOYMENT.md`
+
+## 验收清单
+
+### 登录
+
+1. 打开 `/login`
+2. 使用你在 `.env` 中设置的管理员账号密码登录
+3. 登录后应进入 `/app`
+4. 若登录后异常，优先检查：
+   - `.env` 是否正确
+   - `SESSION_SECRET` 是否存在
+   - 数据库和 seed 是否已执行
+   - 部署进程是否使用了最新构建
+
+### 上传
+
+1. 桌面端可点击上传，也可拖拽文件上传
+2. 移动端可一次选择多个文件上传
+3. 上传后文件应出现在当前目录列表中
+
+### 批量操作
+
+1. 在文件列表中通过复选框多选文件
+2. 可执行：
+   - 批量删除
+   - 批量创建分享链接
+3. 创建分享时可设置：
+   - 密码
+   - 最大下载次数
+   - 失效时间
+   - 是否允许预览
+
+### 分享
+
+1. 创建链接后，返回的 URL 应使用 `APP_BASE_URL`
+2. 外网设备应能直接访问 `/share/<token>`
+3. 若外网打不开，先检查：
+   - `APP_BASE_URL` 是否仍是本机地址
+   - 服务端口是否放行
+   - 反向代理 / 域名配置是否正确
+
+## 常见问题
+
+### 1. 登录后出现 “This page couldn’t load / A server error occurred”
+
+优先检查：
+
+- 生产进程是否重启到最新版本
+- `.env` 是否缺失或被旧值覆盖
+- 管理员账号密码是否与当前数据库一致
+- 数据库迁移和 seed 是否已执行
+
+建议顺序：
+
+```bash
+pnpm db:generate
+pnpm db:push
+pnpm seed
+pnpm build
+./scripts/start-production.sh
+```
+
+### 2. 分享链接是 `127.0.0.1`
+
+说明 `APP_BASE_URL` 配错了。把它改成真实公网地址后重启服务。
+
+### 3. 页面打开了但样式丢失
+
+说明生产静态资源未正确复制，使用 `scripts/start-production.sh` 启动，而不是手搓不完整启动命令。
+
+## 仓库边界
+
+以下内容不应提交到公开仓库：
+
+- `.env`
+- SQLite 数据库文件
+- `data/` 上传数据
+- 任何个人代理说明、协作提示、身份备注文件
+- 部署主机上的日志和临时文件
+
+## 当前产品方向
+
+- 以文件列表复选框多选为主操作入口
+- 单文件“分享按钮”弱化或移除
+- 移动端优先补齐批量上传和批量操作体验
+- 分享必须默认面向真实可访问地址生成

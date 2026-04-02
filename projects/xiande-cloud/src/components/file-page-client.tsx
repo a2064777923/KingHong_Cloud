@@ -116,8 +116,7 @@ function BatchShareModal({ fileIds, onClose }: BatchShareModalProps) {
       const result = await response.json();
 
       if (result.ok) {
-        const baseUrl = window.location.origin;
-        setShareUrl(`${baseUrl}/share/${result.data.token}`);
+        setShareUrl(result.data.url ?? `${window.location.origin}/share/${result.data.token}`);
         setMessage("分享链接已创建");
       } else {
         setMessage(result.message || "创建失败");

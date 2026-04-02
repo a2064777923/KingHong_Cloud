@@ -1,1 +1,0 @@
-GitHub push 当前仍缺远端认证，不是 git user.name / user.email 问题。`gh auth status` 仍显示未登录当前主机环境。待用户在本机完成认证后再 push。
