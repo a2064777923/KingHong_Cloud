@@ -75,9 +75,10 @@ export function UploadPanel({ folderId }: { folderId?: string | null }) {
       </label>
       <input id={inputId} type="file" className="hidden" onChange={onChange} disabled={busy} multiple />
       {progressText ? (
-        <p className="max-w-[220px] text-[11px] leading-4 text-cyan-200 sm:max-w-none sm:text-xs">{progressText}</p>
+        <p className="max-w-[260px] text-[11px] leading-4 text-cyan-200 sm:max-w-none sm:text-xs">{progressText}</p>
       ) : null}
-      {message ? <p className="max-w-[220px] text-[11px] leading-4 text-slate-300 sm:max-w-none sm:text-xs">{message}</p> : null}
+      {message ? <p className="max-w-[260px] text-[11px] leading-4 text-slate-300 sm:max-w-none sm:text-xs">{message}</p> : null}
+      <p className="max-w-[260px] text-[11px] leading-4 text-slate-500 sm:max-w-none sm:text-xs">手机端可一次选择多个文件；桌面端支持点击选择和拖拽上传。</p>
     </div>
   );
 }

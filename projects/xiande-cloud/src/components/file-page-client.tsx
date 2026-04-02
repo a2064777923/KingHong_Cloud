@@ -50,7 +50,7 @@ function BatchActionsBar({ selectedCount, onClear, onDelete, onShare }: BatchAct
   if (selectedCount === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3">
+    <div className="sticky top-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-400/30 bg-slate-950/90 px-4 py-3 shadow-lg shadow-cyan-900/20 backdrop-blur">
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium text-cyan-200">已选择 {selectedCount} 个文件</span>
         <button
@@ -454,6 +454,7 @@ export function FilePageClient({
                   下载
                 </a>
               </div>
+              <p className="mt-2 text-[11px] text-slate-400">分享请先勾选复选框后使用顶部批量分享</p>
             </article>
           ))
         )}
