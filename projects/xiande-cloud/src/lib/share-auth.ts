@@ -11,7 +11,7 @@ export async function markShareVerified(token: string) {
     httpOnly: true,
     sameSite: "lax",
     secure: false,
-    path: `/share/${token}`,
+    path: "/",
     maxAge: 60 * 60 * 12,
   });
 }

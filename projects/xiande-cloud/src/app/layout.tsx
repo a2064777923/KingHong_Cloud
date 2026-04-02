@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { env } from "@/lib/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "贤得慌又云里雾里",
+  metadataBase: new URL(env.appBaseUrl),
+  title: {
+    default: env.appName,
+    template: `%s - ${env.appName}`,
+  },
   description: "高可读、高安全、面向多端的私有云档案上传与分享服务",
+  applicationName: env.appName,
+  openGraph: {
+    title: env.appName,
+    description: "高可读、高安全、面向多端的私有云档案上传与分享服务",
+    siteName: env.appName,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

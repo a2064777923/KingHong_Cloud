@@ -1,11 +1,14 @@
 "use client";
 
 import { useId, useState } from "react";
+import { UploadProgressIndicator } from "@/components/upload-progress-indicator";
+import { type UploadProgress, uploadFilesSequentially } from "@/lib/upload-client";
 
 export function UploadPanel({ folderId }: { folderId?: string | null }) {
   const [message, setMessage] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [progressText, setProgressText] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const inputId = useId();
 
   async function onChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -14,40 +17,23 @@ export function UploadPanel({ folderId }: { folderId?: string | null }) {
 
     setBusy(true);
     setMessage("");
-    setProgressText(`准备上传 0 / ${files.length}`);
+    setUploadProgress(null);
+    setProgressText(`准备上传 1 / ${files.length}`);
 
-    const failed: string[] = [];
-
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const formData = new FormData();
-      formData.append("file", file);
-      if (folderId) {
-        formData.append("folderId", folderId);
-      }
-
-      setProgressText(`上传中 ${index + 1} / ${files.length}：${file.name}`);
-
-      try {
-        const response = await fetch("/api/files/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-        if (!response.ok) {
-          failed.push(result.message ? `${file.name}（${result.message}）` : file.name);
-        }
-      } catch {
-        failed.push(file.name);
-      }
-    }
+    const { failed, successCount } = await uploadFilesSequentially({
+      files,
+      folderId,
+      onProgress: (progress) => {
+        setUploadProgress(progress);
+        setProgressText(`上传中 ${progress.fileIndex} / ${progress.totalFiles}`);
+      },
+    });
 
     setBusy(false);
     event.target.value = "";
+    setUploadProgress(null);
 
     if (failed.length > 0) {
-      const successCount = files.length - failed.length;
       setMessage(
         successCount > 0
           ? `已上传 ${successCount} 个，失败 ${failed.length} 个：${failed.join("、")}`
@@ -74,6 +60,7 @@ export function UploadPanel({ folderId }: { folderId?: string | null }) {
         {busy ? "上传中..." : "批量上传"}
       </label>
       <input id={inputId} type="file" className="hidden" onChange={onChange} disabled={busy} multiple />
+      <UploadProgressIndicator progress={uploadProgress} />
       {progressText ? (
         <p className="max-w-[260px] text-[11px] leading-4 text-cyan-200 sm:max-w-none sm:text-xs">{progressText}</p>
       ) : null}

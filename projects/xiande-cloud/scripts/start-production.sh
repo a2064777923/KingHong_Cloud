@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /root/.openclaw/workspace/projects/xiande-cloud
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+NODE_BIN="${NODE_BIN:-$(command -v node || true)}"
+BIND_HOST="${BIND_HOST:-0.0.0.0}"
+
+if [ -z "$NODE_BIN" ] && [ -x /root/.nvm/versions/node/v22.22.2/bin/node ]; then
+  NODE_BIN="/root/.nvm/versions/node/v22.22.2/bin/node"
+fi
+
+if [ -z "$NODE_BIN" ]; then
+  echo "node not found" >&2
+  exit 1
+fi
+
+cd "$ROOT_DIR"
 
 rm -rf .next/standalone/.next/static
 mkdir -p .next/standalone/.next/static
@@ -12,8 +25,8 @@ mkdir -p .next/standalone/public
 cp -a public/. .next/standalone/public/ 2>/dev/null || true
 
 export NODE_ENV=production
-export PORT="9527"
-export HOSTNAME="0.0.0.0"
-export PATH="/root/.nvm/versions/node/v22.22.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PORT="${PORT:-9527}"
+export HOSTNAME="$BIND_HOST"
+export PATH="$(dirname "$NODE_BIN"):/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-exec /root/.nvm/versions/node/v22.22.2/bin/node .next/standalone/server.js
+exec "$NODE_BIN" .next/standalone/server.js

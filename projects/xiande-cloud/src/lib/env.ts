@@ -5,5 +5,6 @@ export const env = {
   filesRoot: process.env.FILES_ROOT ?? "./data/files",
   initialAdminUsername: process.env.INITIAL_ADMIN_USERNAME ?? "admin",
   initialAdminPassword: process.env.INITIAL_ADMIN_PASSWORD ?? "ab123456",
+  maxUploadBytesAdmin: BigInt(process.env.MAX_UPLOAD_BYTES_ADMIN ?? "1073741824"),
   maxUploadBytesUser: BigInt(process.env.MAX_UPLOAD_BYTES_USER ?? "104857600"),
 };

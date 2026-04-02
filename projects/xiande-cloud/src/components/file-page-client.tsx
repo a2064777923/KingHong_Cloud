@@ -3,7 +3,9 @@
 import { useState, useCallback } from "react";
 import { CloudUpload, Share2, Trash2, X, Copy, Check } from "lucide-react";
 import { FileKindIcon } from "@/components/file-kind-icon";
+import { UploadProgressIndicator } from "@/components/upload-progress-indicator";
 import { copyText } from "@/lib/clipboard";
+import { type UploadProgress, uploadFilesSequentially } from "@/lib/upload-client";
 import { FileKind } from "@prisma/client";
 
 // Helper functions (inlined to avoid import chain with server code)
@@ -242,6 +244,9 @@ export function FilePageClient({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -305,20 +310,35 @@ export function FilePageClient({
     const droppedFiles = Array.from(e.dataTransfer.files);
     if (droppedFiles.length === 0) return;
 
-    try {
-      for (const file of droppedFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-        if (folderId) formData.append("folderId", folderId);
+    setUploading(true);
+    setUploadMessage("");
+    setUploadProgress(null);
 
-        await fetch("/api/files/upload", {
-          method: "POST",
-          body: formData,
-        });
+    const { failed, successCount } = await uploadFilesSequentially({
+      files: droppedFiles,
+      folderId,
+      onProgress: setUploadProgress,
+    });
+
+    setUploading(false);
+    setUploadProgress(null);
+
+    if (failed.length > 0) {
+      setUploadMessage(
+        successCount > 0
+          ? `已上传 ${successCount} 个，失败 ${failed.length} 个：${failed.join("、")}`
+          : `上传失败：${failed.join("、")}`,
+      );
+      if (successCount > 0) {
+        window.location.reload();
       }
+      return;
+    }
+
+    try {
       window.location.reload();
     } catch {
-      alert("上传失败");
+      setUploadMessage("上传失败");
     }
   }, [folderId]);
 
@@ -348,6 +368,14 @@ export function FilePageClient({
         onDelete={handleBatchDelete}
         onShare={handleBatchShare}
       />
+
+      {(uploading || uploadProgress || uploadMessage) && (
+        <div className="mt-4 flex flex-col gap-2">
+          <UploadProgressIndicator progress={uploadProgress} />
+          {uploading ? <p className="text-xs text-cyan-200">正在上传拖拽文件…</p> : null}
+          {uploadMessage ? <p className="text-xs text-slate-300">{uploadMessage}</p> : null}
+        </div>
+      )}
 
       {/* Desktop Table */}
       <div className="hidden lg:block mt-4">

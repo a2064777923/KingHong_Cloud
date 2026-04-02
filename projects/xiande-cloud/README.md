@@ -81,11 +81,14 @@ MAX_UPLOAD_BYTES_USER="104857600"
 pnpm install
 pnpm db:generate
 pnpm db:push
-pnpm build
-./scripts/start-production.sh
+./scripts/deploy-production.sh
 ```
 
 `scripts/start-production.sh` 会同步 standalone 运行所需静态资源，避免页面能开但 CSS / JS 404。
+
+`scripts/deploy-production.sh` 会先停掉旧服务，再执行 `pnpm db:generate`、`pnpm db:push`、`pnpm build`，最后拉起生产进程并校验 `/login`、`/app` 和静态资源，避免旧进程和新构建产物打架。
+
+如果手动部署，`pnpm build` 后还要替换旧的生产进程，不能让旧的 `9527` standalone 继续跑；否则旧的 standalone 工作目录会失效，可能出现登录报错、仍在跑旧代码或静态资源异常。
 
 详细说明见：`DEPLOYMENT.md`
 

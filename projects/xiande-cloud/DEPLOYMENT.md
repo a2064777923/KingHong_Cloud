@@ -11,11 +11,8 @@ cd /root/.openclaw/workspace/projects/xiande-cloud
 pnpm install
 cp .env.example .env
 # 然后编辑 .env
-pnpm db:generate
-pnpm db:push
 pnpm seed
-pnpm build
-./scripts/start-production.sh
+./scripts/deploy-production.sh
 ```
 
 ## 上线前必须检查的环境变量
@@ -54,15 +51,35 @@ APP_BASE_URL="https://files.example.com"
 ## 启动方式
 
 ```bash
-./scripts/start-production.sh
+./scripts/deploy-production.sh
 ```
 
-这个脚本会在启动 standalone 服务前同步：
+这个脚本会：
+
+- 先停掉旧的 `9527` 生产进程或 `xiande-cloud.service`
+- 执行 `pnpm db:generate`
+- 执行 `pnpm db:push`
+- 执行 `pnpm build`
+- 调用 `scripts/start-production.sh` 启动最新 standalone
+- 校验 `/login`、`/app` 和 `/_next/static/*`
+
+其中 `scripts/start-production.sh` 会在启动 standalone 服务前同步：
 
 - `public/`
 - `.next/static/`
 
 避免出现页面能打开，但静态资源 404、样式丢失、脚本加载失败的问题。
+
+如果服务已经在运行，重新 `pnpm build` 后一定要替换旧进程，不能让旧的 `9527` 进程继续跑。否则旧的 standalone 工作目录可能已经被新构建替换，进而导致静态资源异常、代码仍是旧版本，或 SQLite 打开到失效路径。
+
+推荐把它当成固定规则：
+
+```bash
+cd /root/.openclaw/workspace/projects/xiande-cloud
+./scripts/deploy-production.sh
+```
+
+如果不是用 `systemd`，部署脚本也会先停掉占用 `9527` 的旧进程，再用 `./scripts/start-production.sh` 拉起新进程。**不要在旧进程还活着时单独执行 `pnpm build`。**
 
 ## 建议的 systemd 服务
 
@@ -130,7 +147,7 @@ pnpm build
 先查：
 
 - 是否使用了 `scripts/start-production.sh`
-- 当前进程是不是旧构建残留
+- 当前 `9527` 进程是不是旧构建残留
 - `/_next/static/chunks/*.css` 是否返回 200
 - standalone 下静态资源是否已完整复制
 

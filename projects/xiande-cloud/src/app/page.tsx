@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, MonitorSmartphone, Share2, UploadCloud } from "lucide-react";
+import { SiteBrand } from "@/components/site-brand";
 
 const highlights = [
   {
@@ -31,9 +32,7 @@ export default function Home() {
         <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8 lg:p-10">
           <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                贤得慌又云里雾里
-              </h1>
+              <SiteBrand size="lg" subtitle="私有部署云端文件空间" titleClassName="whitespace-normal" />
               <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
                 私有部署的文件上传、预览、下载与分享服务。
               </p>

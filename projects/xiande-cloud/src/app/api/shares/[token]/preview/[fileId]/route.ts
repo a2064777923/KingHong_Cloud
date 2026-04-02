@@ -1,9 +1,8 @@
-import fs from "node:fs/promises";
 import { db } from "@/lib/db";
-import { resolveStoragePath } from "@/lib/files";
+import { createInlineFileResponse } from "@/lib/files";
 import { isShareVerified } from "@/lib/share-auth";
 
-export async function GET(_request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
   const { token, fileId } = await context.params;
 
   const share = await db.share.findUnique({
@@ -36,22 +35,24 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   }
 
   const file = item.file;
-  const buffer = await fs.readFile(resolveStoragePath(file.storageKey));
-
-  await db.shareAccessLog.create({
-    data: {
-      shareId: share.id,
-      action: "preview",
-      userAgent: null,
-      ip: null,
-    },
+  const response = await createInlineFileResponse({
+    request,
+    storageKey: file.storageKey,
+    mimeType: file.mimeType,
+    originalName: file.originalName,
   });
 
-  return new Response(buffer, {
-    headers: {
-      "Content-Type": file.mimeType,
-      "Content-Length": String(buffer.byteLength),
-      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.originalName)}`,
-    },
-  });
+  const rangeHeader = request.headers.get("range");
+  if (!rangeHeader || rangeHeader.startsWith("bytes=0-")) {
+    await db.shareAccessLog.create({
+      data: {
+        shareId: share.id,
+        action: "preview",
+        userAgent: null,
+        ip: null,
+      },
+    });
+  }
+
+  return response;
 }

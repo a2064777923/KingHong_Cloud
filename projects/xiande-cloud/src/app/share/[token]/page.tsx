@@ -1,11 +1,22 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarClock, Download, Eye, KeyRound } from "lucide-react";
+import { SiteBrand } from "@/components/site-brand";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/date";
 import { formatBytes } from "@/lib/files";
 import { FileKindIcon } from "@/components/file-kind-icon";
 import { ShareAccessPanel } from "@/components/share-access-panel";
 import { isShareVerified } from "@/lib/share-auth";
+import { env } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "分享页面",
+  openGraph: {
+    title: `${env.appName} - 分享页面`,
+    siteName: env.appName,
+  },
+};
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -25,7 +36,11 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl sm:p-8">
-        <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="border-b border-white/10 pb-6">
+          <SiteBrand size="sm" subtitle="公开分享页面" />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">Shared Files</p>
             <h1 className="mt-2 text-3xl font-semibold">分享文件</h1>

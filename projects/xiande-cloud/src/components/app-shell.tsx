@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import { FolderKanban, Settings, ShieldCheck, Share2, Sparkles } from "lucide-react";
+import { FolderKanban, Settings, ShieldCheck, Share2 } from "lucide-react";
+import { SiteBrand } from "@/components/site-brand";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -27,15 +28,7 @@ export function AppShell({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(86,133,255,0.18),_transparent_35%),linear-gradient(180deg,#07111f_0%,#0b1322_35%,#09101c_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4 sm:px-6 lg:flex-row lg:px-8">
         <aside className="mb-4 rounded-3xl border border-white/10 bg-white/8 p-4 backdrop-blur-xl lg:mb-0 lg:w-72 lg:p-6">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/20 text-cyan-200 shadow-lg shadow-cyan-500/10">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-200/70">Files</p>
-              <h1 className="text-lg font-semibold">贤得慌又云里雾里</h1>
-            </div>
-          </div>
+          <SiteBrand className="mb-8" subtitle="文件上传与分享" />
           <nav className="space-y-2">
             {nav
               .filter((item) => isAdmin || item.href !== "/admin")

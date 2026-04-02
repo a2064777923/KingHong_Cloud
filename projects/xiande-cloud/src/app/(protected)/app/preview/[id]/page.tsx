@@ -53,9 +53,9 @@ export default async function PreviewPage({
           ) : isPdf ? (
             <iframe src={previewUrl} title={file.originalName} className="h-[75vh] w-full rounded-2xl bg-white" />
           ) : isVideo ? (
-            <video src={previewUrl} controls className="max-h-[75vh] w-full rounded-2xl bg-black" />
+            <video src={previewUrl} controls preload="metadata" className="max-h-[75vh] w-full rounded-2xl bg-black" />
           ) : isAudio ? (
-            <audio src={previewUrl} controls className="w-full" />
+            <audio src={previewUrl} controls preload="metadata" className="w-full" />
           ) : (
             <div className="rounded-2xl border border-dashed border-white/15 px-4 py-8 text-sm text-slate-300">
               当前文件类型暂不支持内嵌预览，请使用上方“新窗口打开原始预览”或直接下载查看。
