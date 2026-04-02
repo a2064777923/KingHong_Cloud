@@ -65,44 +65,46 @@ export function FileBrowserToolbar({
 
   return (
     <section className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
         <form
           onSubmit={(event) => {
             event.preventDefault();
             apply(query, sort);
           }}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3"
+          className="flex min-w-0 flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3"
         >
-          <Search className="h-4 w-4 shrink-0 text-slate-400" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="按文件名或文件夹名搜索"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-slate-500"
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("");
-                apply("", sort);
-              }}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/8"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="按文件名或文件夹名搜索"
+              className="w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-slate-500"
+            />
+            {query ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  apply("", sort);
+                }}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/8"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-w-[88px] items-center justify-center rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 disabled:opacity-70"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-cyan-400 px-4 py-2 text-sm font-medium text-slate-950 disabled:opacity-70 sm:w-auto"
           >
             {isPending ? "搜索中..." : "搜索"}
           </button>
         </form>
 
-        <div className="flex items-start gap-2 shrink-0">
-          <label className="inline-flex h-[52px] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] xl:min-w-[320px]">
+          <label className="flex h-[52px] min-w-0 w-full items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200">
             <SlidersHorizontal className="h-4 w-4 shrink-0" />
             <select
               value={sort}
@@ -112,7 +114,7 @@ export function FileBrowserToolbar({
                 apply(query, nextSort);
               }}
               disabled={isPending}
-              className="min-w-[132px] bg-transparent outline-none"
+              className="min-w-0 w-full bg-transparent outline-none"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value} className="bg-slate-950 text-white">
@@ -121,7 +123,9 @@ export function FileBrowserToolbar({
               ))}
             </select>
           </label>
-          <UploadPanel folderId={folderId} compact />
+          <div className="min-w-0">
+            <UploadPanel folderId={folderId} compact />
+          </div>
         </div>
       </div>
 
