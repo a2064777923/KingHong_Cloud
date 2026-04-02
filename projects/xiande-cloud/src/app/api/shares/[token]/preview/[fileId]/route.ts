@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { createInlineFileResponse } from "@/lib/files";
+import { createInlineAbsoluteFileResponse, createInlineFileResponse } from "@/lib/files";
 import { isShareVerified } from "@/lib/share-auth";
+import { ensureLowResolutionVideoPreview, getVideoPreviewResponseMeta } from "@/lib/video-preview";
 
 export async function GET(request: Request, context: { params: Promise<{ token: string; fileId: string }> }) {
   const { token, fileId } = await context.params;
@@ -35,12 +36,43 @@ export async function GET(request: Request, context: { params: Promise<{ token: 
   }
 
   const file = item.file;
-  const response = await createInlineFileResponse({
-    request,
-    storageKey: file.storageKey,
-    mimeType: file.mimeType,
-    originalName: file.originalName,
-  });
+  const variant = new URL(request.url).searchParams.get("variant");
+  let response: Response;
+
+  if (file.mimeType.startsWith("video/") && variant !== "original") {
+    try {
+      const previewPath = await ensureLowResolutionVideoPreview(file.storageKey);
+      const previewMeta = getVideoPreviewResponseMeta(file.originalName);
+
+      response = await createInlineAbsoluteFileResponse({
+        request,
+        absolutePath: previewPath,
+        mimeType: previewMeta.mimeType,
+        originalName: previewMeta.originalName,
+      });
+    } catch (error) {
+      console.error("Failed to generate shared video preview", {
+        shareId: share.id,
+        fileId: file.id,
+        storageKey: file.storageKey,
+        error,
+      });
+
+      response = await createInlineFileResponse({
+        request,
+        storageKey: file.storageKey,
+        mimeType: file.mimeType,
+        originalName: file.originalName,
+      });
+    }
+  } else {
+    response = await createInlineFileResponse({
+      request,
+      storageKey: file.storageKey,
+      mimeType: file.mimeType,
+      originalName: file.originalName,
+    });
+  }
 
   const rangeHeader = request.headers.get("range");
   if (!rangeHeader || rangeHeader.startsWith("bytes=0-")) {

@@ -1,18 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { deleteStoredFileArtifacts } from "@/lib/files";
 import { badRequest, ok } from "@/lib/http";
-import { env } from "@/lib/env";
-import path from "node:path";
-import fs from "node:fs/promises";
-
-async function deleteFile(storageKey: string) {
-  const filePath = path.resolve(process.cwd(), env.filesRoot, storageKey);
-  try {
-    await fs.unlink(filePath);
-  } catch {
-    // File may not exist, ignore
-  }
-}
 
 export async function POST(request: Request) {
   const user = await requireUser();
@@ -37,7 +26,7 @@ export async function POST(request: Request) {
 
   // Delete each file
   for (const file of files) {
-    await deleteFile(file.storageKey);
+    await deleteStoredFileArtifacts(file.storageKey);
     await db.fileEntry.delete({ where: { id: file.id } });
   }
 

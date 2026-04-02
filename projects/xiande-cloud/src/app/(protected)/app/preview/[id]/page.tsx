@@ -33,6 +33,8 @@ export default async function PreviewPage({
   const isVideo = file.mimeType.startsWith("video/");
   const isAudio = file.mimeType.startsWith("audio/");
   const previewUrl = `/api/files/${file.id}/preview`;
+  const embeddedPreviewUrl = isVideo ? `${previewUrl}?variant=preview` : previewUrl;
+  const originalPreviewUrl = isVideo ? `${previewUrl}?variant=original` : previewUrl;
 
   return (
     <AppShell title="文件预览" subtitle={file.originalName} pathname="/app" isAdmin={user.role === "ADMIN"}>
@@ -42,20 +44,25 @@ export default async function PreviewPage({
             <ArrowLeft className="h-4 w-4" />
             返回文件列表
           </Link>
-          <a href={previewUrl} target="_blank" className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm hover:bg-white/8">
+          <a href={originalPreviewUrl} target="_blank" className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm hover:bg-white/8">
             新窗口打开原始预览
           </a>
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
           {isImage ? (
-            <img src={previewUrl} alt={file.originalName} className="mx-auto max-h-[75vh] rounded-2xl" />
+            <img src={embeddedPreviewUrl} alt={file.originalName} className="mx-auto max-h-[75vh] rounded-2xl" />
           ) : isPdf ? (
-            <iframe src={previewUrl} title={file.originalName} className="h-[75vh] w-full rounded-2xl bg-white" />
+            <iframe src={embeddedPreviewUrl} title={file.originalName} className="h-[75vh] w-full rounded-2xl bg-white" />
           ) : isVideo ? (
-            <video src={previewUrl} controls preload="metadata" className="max-h-[75vh] w-full rounded-2xl bg-black" />
+            <div className="space-y-3">
+              <video src={embeddedPreviewUrl} controls preload="metadata" playsInline className="max-h-[75vh] w-full rounded-2xl bg-black" />
+              <p className="text-xs text-slate-400">
+                视频预览默认使用低清缓存以减少卡顿；如需查看原始画质，请使用上方“新窗口打开原始预览”。
+              </p>
+            </div>
           ) : isAudio ? (
-            <audio src={previewUrl} controls preload="metadata" className="w-full" />
+            <audio src={embeddedPreviewUrl} controls preload="metadata" className="w-full" />
           ) : (
             <div className="rounded-2xl border border-dashed border-white/15 px-4 py-8 text-sm text-slate-300">
               当前文件类型暂不支持内嵌预览，请使用上方“新窗口打开原始预览”或直接下载查看。

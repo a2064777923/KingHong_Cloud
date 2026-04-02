@@ -8,8 +8,20 @@ export function resolveStoragePath(storageKey: string) {
   return path.resolve(process.cwd(), env.filesRoot, storageKey);
 }
 
+export function resolvePreviewPath(storageKey: string) {
+  const normalizedStorageKey = storageKey.replace(/\\/g, "/");
+  return path.resolve(process.cwd(), env.filesRoot, ".previews", `${normalizedStorageKey}.preview.mp4`);
+}
+
 export async function ensureDataDirs() {
   await fs.mkdir(path.resolve(process.cwd(), env.filesRoot), { recursive: true });
+}
+
+export async function deleteStoredFileArtifacts(storageKey: string) {
+  await Promise.allSettled([
+    fs.rm(resolveStoragePath(storageKey), { force: true }),
+    fs.rm(resolvePreviewPath(storageKey), { force: true }),
+  ]);
 }
 
 export function detectFileKind(mimeType: string, ext?: string | null) {
@@ -68,18 +80,17 @@ function parseSingleRange(rangeHeader: string | null, size: number) {
   return { start, end: Math.min(end, size - 1) };
 }
 
-export async function createInlineFileResponse({
+export async function createInlineAbsoluteFileResponse({
   request,
-  storageKey,
+  absolutePath,
   mimeType,
   originalName,
 }: {
   request: Request;
-  storageKey: string;
+  absolutePath: string;
   mimeType: string;
   originalName: string;
 }) {
-  const absolutePath = resolveStoragePath(storageKey);
   const stats = await fs.stat(absolutePath);
   const size = stats.size;
   const range = parseSingleRange(request.headers.get("range"), size);
@@ -113,5 +124,24 @@ export async function createInlineFileResponse({
   return new Response(stream as BodyInit, {
     status: range ? 206 : 200,
     headers,
+  });
+}
+
+export async function createInlineFileResponse({
+  request,
+  storageKey,
+  mimeType,
+  originalName,
+}: {
+  request: Request;
+  storageKey: string;
+  mimeType: string;
+  originalName: string;
+}) {
+  return createInlineAbsoluteFileResponse({
+    request,
+    absolutePath: resolveStoragePath(storageKey),
+    mimeType,
+    originalName,
   });
 }
